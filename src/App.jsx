@@ -1,17 +1,17 @@
-import './App.css'
-import GameForm from './GameForm'
+import "./App.css";
+import GameForm from "./components/GameForm";
+import GameList from "./components/GameList";
 
 function App() {
-
   return (
     <main className="contenedor">
       <section className="izquierda">
         <GameForm />
       </section>
       <section className="derecha">
-        {/* componente agus*/}
+        <GameList />
       </section>
     </main>
-  )
+  );
 }
-export default App
+export default App;
