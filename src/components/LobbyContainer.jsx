@@ -1,4 +1,4 @@
-// Importa hooks necesarios para manejar estado, navegación y parámetros de la URL
+// Importa hooks, para manejar estado, navegación y parámetros de la URL
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./LobbyContainer.css"; // Estilos personalizados para el lobby
@@ -11,7 +11,6 @@ const LobbyContainer = () => {
 
   // Recupera el token JWT desde localStorage para autenticación
   const token = localStorage.getItem("token");
-  // const nombre = localStorage.getItem("usuario")
   const decoded = jwtDecode(token);
   console.log(jwtDecode(token));
 
@@ -28,8 +27,8 @@ const LobbyContainer = () => {
   // Conexión al WebSocket cuando se monta el componente
   useEffect(() => {
     // Establece conexión con el backend usando el ID de la partida
-    const socket = new WebSocket(`ws://localhost:8000/ws/lobby/${partidaId}?token=${token}`);
-
+    const url = `ws://localhost:8000/ws/lobby/${partidaId}?token=${token}`;
+    const socket = new WebSocket(url);
     // Maneja los mensajes recibidos desde el backend
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -94,7 +93,7 @@ const LobbyContainer = () => {
         ))}
       </ul>
 
-      {/* Botón para iniciar la partida, solo visible si el jugador es owner */}
+      {/* Botón para iniciar la partida,solo visible si el jugador es owner */}
       {partida?.owner_id == jugadorId && (
         <button onClick={handleIniciar}>Iniciar partida</button>
       )}
