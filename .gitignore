@@ -1,0 +1,21 @@
+# Dependencias
+node_modules/
+
+# Builds
+dist/
+.vite/
+
+# Variables de entorno
+.env
+.env.local
+
+# Logs
+*.log
+
+# Configuración de IDEs
+.vscode/
+.idea/
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
