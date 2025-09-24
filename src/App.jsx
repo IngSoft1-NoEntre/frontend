@@ -2,7 +2,7 @@ import './App.css';
 import { Routes, Route } from 'react-router-dom';
 import GameForm from './components/GameForm';
 import JugadorForm from './components/JugadorForm';
-// import LobbyContainer from "./components/LobbyContainer";
+import LobbyContainer from "./components/LobbyContainer";
 
 function App() {
   return (
@@ -18,7 +18,7 @@ function App() {
           </section>
         </main>
       } />
-      {/* <Route path="/lobby/:partidaId" element={<LobbyContainer />} /> */}
+      <Route path="/lobby/:partidaId" element={<LobbyContainer />} />
     </Routes>
   );
 }
