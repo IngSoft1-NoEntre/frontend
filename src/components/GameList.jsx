@@ -100,8 +100,10 @@ const GameList = () => {
         `http://localhost:8000/partidas/${partidaSeleccionada.id}/unirse`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          Authorization: `Bearer ${token}`,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Token para autenticación
+          },
           // Aquí podrías enviar datos del jugador si es necesario
           body: JSON.stringify({ jugador: "UsuarioActual" }),
         }
