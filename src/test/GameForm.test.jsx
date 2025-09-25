@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, it, vi, expect} from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import GameForm from "./GameForm";
+import GameForm from "../components/GameForm";
 
 // Mock de useNavigate para que no rompa al llamar navigate
 vi.mock("react-router-dom", () => ({
