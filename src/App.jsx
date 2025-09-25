@@ -1,26 +1,26 @@
-import "./App.css";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import GameForm from "./components/GameForm";
+import './App.css';
+import { Routes, Route } from 'react-router-dom';
+import GameForm from './components/GameForm';
+import JugadorForm from './components/JugadorForm';
+import LobbyContainer from "./components/LobbyContainer";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/*<Route path="/" element={<JugadorForm/>} />*/}
-        <Route
-          path="/home"
-          element={
-            <main className="contenedor">
-              <section className="izquierda">
-                <GameForm />
-              </section>
-              <section className="derecha">{/*<GameList /> */}</section>
-            </main>
-          }
-        />
-        {/*<Route path="/lobby/:partidaId" element={<LobbyContainer />} /> */}
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/" element={<JugadorForm/>} />
+      <Route path="/home" element={
+        <main className="contenedor">
+          <section className="izquierda">
+            <GameForm />
+          </section>
+          <section className="derecha">
+            {/* componente */}
+          </section>
+        </main>
+      } />
+      <Route path="/lobby/:partidaId" element={<LobbyContainer />} />
+    </Routes>
   );
 }
+
 export default App;
