@@ -1,22 +1,24 @@
-// GameList.jsx
 import { useState } from "react"; // agregar useEffect si incorporo refresh aut
+import { useNavigate } from "react-router-dom";
 import "./GameList.css";
 
 const GameList = () => {
   const [partidas, setPartidas] = useState([]);
   const [partidaSeleccionada, setPartidaSeleccionada] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
   // Cargar partidas del backend
   const cargarPartidas = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:4000/partidas");
+      const response = await fetch("http://localhost:8000/partidas");
       if (response.ok) {
         const data = await response.json();
         // Solo mostrar partidas que no han iniciado
         const partidasDisponibles = data.filter(
-          (partida) => partida.estado === "esperando"
+          (partida) => partida.estado === "disponible"
         );
         setPartidas(partidasDisponibles);
       } else {
@@ -26,29 +28,17 @@ const GameList = () => {
           {
             id: 1,
             nombre: "Partida de Principiantes",
-            mincantjugadores: 2,
-            maxcantjugadores: 4,
-            jugadores_actuales: 1,
-            creador: "JugadorPro",
-            estado: "esperando",
+            estado: "disponible",
           },
           {
             id: 2,
             nombre: "Mesa Rápida",
-            mincantjugadores: 2,
-            maxcantjugadores: 6,
-            jugadores_actuales: 2,
-            creador: "CartasLoca",
-            estado: "esperando",
+            estado: "disponible",
           },
           {
             id: 3,
             nombre: "Torneo Amistoso",
-            mincantjugadores: 3,
-            maxcantjugadores: 5,
-            jugadores_actuales: 3,
-            creador: "MasterCards",
-            estado: "esperando",
+            estado: "disponible",
           },
         ]);
       }
@@ -59,38 +49,7 @@ const GameList = () => {
         {
           id: 1,
           nombre: "Partida de Ejemplo",
-          mincantjugadores: 2,
-          maxcantjugadores: 4,
-          jugadores_actuales: 1,
-          creador: "Usuario1",
-          estado: "esperando",
-        },
-        {
-          id: 2,
-          nombre: "Partida de Principiantes",
-          mincantjugadores: 2,
-          maxcantjugadores: 4,
-          jugadores_actuales: 1,
-          creador: "JugadorPro",
-          estado: "esperando",
-        },
-        {
-          id: 3,
-          nombre: "Mesa Rápida",
-          mincantjugadores: 2,
-          maxcantjugadores: 6,
-          jugadores_actuales: 2,
-          creador: "CartasLoca",
-          estado: "esperando",
-        },
-        {
-          id: 4,
-          nombre: "Torneo Amistoso",
-          mincantjugadores: 3,
-          maxcantjugadores: 5,
-          jugadores_actuales: 3,
-          creador: "MasterCards",
-          estado: "esperando",
+          estado: "disponible",
         },
       ]);
     } finally {
@@ -121,11 +80,28 @@ const GameList = () => {
     }
 
     try {
+      /*const ws = new WebSocket(
+        `ws://localhost:8000/ws/lobby/${partidaSeleccionada.id}?token=${token}`
+      );
+      ws.onopen = () => {
+        console.log("WebSocket connected!");
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("Mensaje del lobby:", data);
+      };
+
+      ws.onclose = () => {
+        console.log("WebSocket cerrado");
+      };*/
+
       const response = await fetch(
-        `http://localhost:4000/partidas/${partidaSeleccionada.id}/unirse`,
+        `http://localhost:8000/partidas/${partidaSeleccionada.id}/unirse`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          Authorization: `Bearer ${token}`,
           // Aquí podrías enviar datos del jugador si es necesario
           body: JSON.stringify({ jugador: "UsuarioActual" }),
         }
@@ -135,6 +111,8 @@ const GameList = () => {
         const data = await response.json();
         console.log("Partida seleccionada!:", data);
         alert(`Redirigiendo a "${partidaSeleccionada.nombre}"`);
+        // Ingresar a la sala de la partida
+        navigate(`/ws/lobby/${partidaSeleccionada.id}`);
 
         // Recargar lista para actualizar contadores
         cargarPartidas();
@@ -177,8 +155,8 @@ const GameList = () => {
 
                 <div className="partida-info">
                   <div className="info-item">
-                    <span className="label">Creador:</span>
-                    <span className="value">{partida.creador}</span>
+                    <span className="label">id_partida:</span>
+                    <span className="value">{partida.id}</span>
                   </div>
                 </div>
               </div>
