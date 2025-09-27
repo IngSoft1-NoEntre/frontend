@@ -1,4 +1,5 @@
-import { useState } from "react"; // agregar useEffect si incorporo refresh aut
+import React from "react";
+import { useState, useEffect } from "react"; 
 import { useNavigate } from "react-router-dom";
 import "./GameList.css";
 
@@ -57,7 +58,7 @@ const GameList = () => {
     }
   };
 
-  /* Cargar partidas al montar el componente
+  // Cargar partidas al montar el componente
   useEffect(() => {
     cargarPartidas();
 
@@ -65,7 +66,7 @@ const GameList = () => {
     const interval = setInterval(cargarPartidas, 10000);
 
     return () => clearInterval(interval);
-  }, []);*/
+  }, []);
 
   // Seleccionar partida
   const seleccionarPartida = (partida) => {
@@ -112,9 +113,9 @@ const GameList = () => {
       if (response.ok) {
         const data = await response.json();
         console.log("Partida seleccionada!:", data);
-        alert(`Redirigiendo a "${partidaSeleccionada.nombre}"`);
+        // alert(`Redirigiendo a "${partidaSeleccionada.nombre}"`);
         // Ingresar a la sala de la partida
-        navigate(`/ws/lobby/${partidaSeleccionada.id}`);
+        navigate(`/lobby/${partidaSeleccionada.id}`);
 
         // Recargar lista para actualizar contadores
         cargarPartidas();
