@@ -1,0 +1,21 @@
+.cardback {
+  width: 72px;
+  height: 96px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(234,179,8,0.12), rgba(234,179,8,0.04));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+.back-graphic {
+  font-size: 18px;
+  opacity: 0.9;
+}
+.back-count {
+  margin-top: 6px;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 12px;
+}

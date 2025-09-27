@@ -1,0 +1,45 @@
+.carta {
+  width: 76px;
+  height: 108px;
+  border-radius: 8px;
+  background: var(--card);
+  color:#0D0D0D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 14px rgba(2, 6, 23, 0.25);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  cursor: pointer;
+  opacity: 1;
+}
+
+.carta.small {
+  width: 66px;
+  height: 92px;
+  font-size: 13px;
+}
+
+/* hover mano */
+.carta:hover {
+  transform: translateY(-8px) scale(1.06);
+  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.45);
+  z-index: 50;
+}
+
+/* faceup/facedown */
+.carta__title {
+  font-weight: 700;
+  text-align: center;
+  padding: 6px;
+  color: #0D0D0D;
+}
+.carta__back {
+  background: linear-gradient(180deg, rgba(234,179,8,0.12), rgba(234,179,8,0.04));
+  width: 100%;
+  font-weight: 700;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

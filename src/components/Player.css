@@ -1,0 +1,57 @@
+/* Player.css - minimal */
+.player-minimal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 92px;
+  cursor: default;
+}
+
+.avatar-sphere{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  background: linear-gradient(180deg, rgba(234,179,8,0.12), rgba(234,179,8,0.04));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  color:var(--accent);
+  border:1px solid rgba(234,179,8,0.12);
+  font-size:18px;
+  box-shadow: inset 0 -6px 12px rgba(0,0,0,0.08);
+}
+
+.player-name{
+  font-size:13px;
+  color:var(--card);
+  font-weight:600;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.player-secrets-row{
+  display:flex;
+  gap:8px;
+  margin-top:6px;
+  justify-content:center;
+}
+
+.secret-card-mini {
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  cursor: pointer;
+}
+
+.secret-card-mini:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.45);
+  z-index: 20;
+}
+
+.player-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  gap: 6px;
+}

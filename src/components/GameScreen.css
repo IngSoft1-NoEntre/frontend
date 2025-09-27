@@ -1,0 +1,109 @@
+.game-root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: #0d0d0d;
+}
+.game-table {
+  width: 1100px;
+  max-width: 95vw;
+  aspect-ratio: 16/9;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(0, 0, 0, 0.09)
+  );
+  border-radius: 14px;
+  padding: 16px;
+  position: relative;
+}
+
+/* columnas izquierda/derecha */
+.players-col {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+.players-left {
+  left: 8px;
+}
+.players-right {
+  right: 8px;
+}
+
+/* jugador superior centrado */
+.player-top-center {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+}
+
+/* centro (mazos) centrados exactamente en el medio*/
+.center-area {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  z-index: 25;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* area local: mano y secretos */
+.local-area {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 18px;
+  align-items: end;
+  justify-content: center;
+  z-index: 30;
+}
+
+/* contenedor mano + secretos en horizontal */
+.hand-and-secrets {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+}
+
+/* secretos horizontales (a la derecha de la mano) */
+.local-secrets-horizontal {
+  display: flex;
+  gap: 8px;
+  margin-left: 8px;
+  align-items: end;
+}
+
+/* fila superior que puede tener 0..2 jugadores */
+.players-top-row {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 200px;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 40;
+}
+
+.players-top-row.top-single {
+  top: 6px;
+}
+
+.player-top-wrapper {
+  margin: 0 6px;
+}
