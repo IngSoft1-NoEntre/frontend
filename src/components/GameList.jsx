@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useEffect } from "react"; 
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./GameList.css";
 
@@ -7,6 +7,7 @@ const GameList = () => {
   const [partidas, setPartidas] = useState([]);
   const [partidaSeleccionada, setPartidaSeleccionada] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [unirseCargando, setUnirseCargando] = useState(false);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
@@ -14,10 +15,15 @@ const GameList = () => {
   const cargarPartidas = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/partidas");
+      const response = await fetch("http://localhost:8000/partidas", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       if (response.ok) {
         const data = await response.json();
-        // Solo mostrar partidas que no han iniciado
+        // Solo mostrar partidas disponibles
         const partidasDisponibles = data.filter(
           (partida) => partida.estado === "disponible"
         );
@@ -30,27 +36,31 @@ const GameList = () => {
             id: 1,
             nombre: "Partida de Principiantes",
             estado: "disponible",
+            tipo: "publica",
           },
           {
             id: 2,
             nombre: "Mesa Rápida",
             estado: "disponible",
+            tipo: "publica",
           },
           {
             id: 3,
             nombre: "Torneo Amistoso",
             estado: "disponible",
+            tipo: "privada",
           },
         ]);
       }
     } catch (error) {
       console.error("Error:", error);
-      // Usar datos de ejemplo en caso de error
+      // Usar datos de ejemplo en caso de error (fallback)
       setPartidas([
         {
           id: 1,
           nombre: "Partida de Ejemplo",
           estado: "disponible",
+          tipo: "publica",
         },
       ]);
     } finally {
@@ -80,53 +90,61 @@ const GameList = () => {
       return;
     }
 
+    setUnirseCargando(true);
+
     try {
-      /*const ws = new WebSocket(
-        `ws://localhost:8000/ws/lobby/${partidaSeleccionada.id}?token=${token}`
-      );
-      ws.onopen = () => {
-        console.log("WebSocket connected!");
-      };
-
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("Mensaje del lobby:", data);
-      };
-
-      ws.onclose = () => {
-        console.log("WebSocket cerrado");
-      };*/
-
       const response = await fetch(
         `http://localhost:8000/partidas/${partidaSeleccionada.id}/unirse`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Token para autenticación
+            Authorization: `Bearer ${token}`,
           },
-          // Aquí podrías enviar datos del jugador si es necesario
+          // Cuerpo con datos necesarios (según backend)
           body: JSON.stringify({ jugador: "UsuarioActual" }),
         }
       );
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Partida seleccionada!:", data);
-        // alert(`Redirigiendo a "${partidaSeleccionada.nombre}"`);
-        // Ingresar a la sala de la partida
-        navigate(`/lobby/${partidaSeleccionada.id}`);
+      // Parsing de la respuesta
+      const text = await response.text();
+      console.log("Texto recibido:", text);
 
-        // Recargar lista para actualizar contadores
-        cargarPartidas();
-        setPartidaSeleccionada(null);
-      } else {
-        const error = await response.json();
-        alert(error.mensaje || "No se pudo unir a la partida");
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error("Respuesta no es JSON válido:", err);
+        alert("Error inesperado: el servidor no devolvió datos válidos.");
+        return;
       }
+
+      console.log("Respuesta parseada:", data);
+
+      // Manejo de respuestas
+      if (response.ok && data.lobby_id) {
+        console.log("Redirigiendo a:", `/lobby/${data.lobby_id}`);
+        navigate(`/lobby/${data.lobby_id}`);
+      } else if (data.detail === "Jugador ya en la partida") {
+        console.log("Jugador ya estaba en la partida. Redirigiendo igual.");
+        navigate(`/lobby/${partidaSeleccionada.id}`);
+      } else if (response.ok) {
+        // Fallback para respuestas exitosas sin lobby_id
+        console.log("Partida seleccionada:", data);
+        navigate(`/lobby/${partidaSeleccionada.id}`);
+      } else {
+        // Usar mensaje de error como fallback
+        alert(data.detail || data.mensaje || "No se pudo unir a la partida");
+      }
+
+      // Recargar lista para actualizar contadores
+      cargarPartidas();
+      setPartidaSeleccionada(null);
     } catch (error) {
       console.error("Error al unirse:", error);
       alert("Error de conexión. Inténtalo de nuevo.");
+    } finally {
+      setUnirseCargando(false);
     }
   };
 
@@ -154,12 +172,21 @@ const GameList = () => {
               >
                 <div className="partida-header">
                   <h3 className="partida-nombre">{partida.nombre}</h3>
+                  <span className="partida-estado">{partida.estado}</span>
                 </div>
 
                 <div className="partida-info">
                   <div className="info-item">
-                    <span className="label">id_partida:</span>
+                    <span className="label">ID:</span>
                     <span className="value">{partida.id}</span>
+                  </div>
+
+                  {/* Información del tipo de partida */}
+                  <div className="info-item">
+                    <span className="label">Tipo:</span>
+                    <span className="value">
+                      {partida.tipo === "privada" ? "Privada 🔒" : "Pública 🌍"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -173,9 +200,11 @@ const GameList = () => {
         <button
           className="btn-cta"
           onClick={unirseAPartida}
-          disabled={!partidaSeleccionada || isLoading}
+          disabled={!partidaSeleccionada || isLoading || unirseCargando}
         >
-          {partidaSeleccionada
+          {unirseCargando
+            ? "Uniéndose..."
+            : partidaSeleccionada
             ? `Unirse a "${partidaSeleccionada.nombre}"`
             : "Selecciona una partida"}
         </button>
@@ -183,11 +212,21 @@ const GameList = () => {
         <button
           className="btn-secondary"
           onClick={cargarPartidas}
-          disabled={isLoading}
+          disabled={isLoading || unirseCargando}
         >
-          🔄 Actualizar
+          {isLoading ? "Actualizando..." : "🔄 Actualizar"}
         </button>
       </div>
+
+      {/* Info de debug */}
+      {process.env.NODE_ENV === "development" && partidaSeleccionada && (
+        <div className="debug-info">
+          <small>
+            Partida seleccionada: ID {partidaSeleccionada.id} - Tipo:{" "}
+            {partidaSeleccionada.tipo || "N/A"}
+          </small>
+        </div>
+      )}
     </div>
   );
 };
