@@ -1,12 +1,57 @@
-# React + Vite
+# Instalación de Node.js y React con Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 0. Si clonaste el repositorio:
+Verificar la version de node.js debe ser la version 22
+```
+node -v
+nvm install 22
+npm install -D vite
+npm run dev
+```
+## 1. Instalar Node.js
+```
+sudo apt update
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+nvm install 22
+```
+## 2. Crear un proyecto con Vite + React
+```
+	npm create vite@latest
+```
 
-Currently, two official plugins are available:
+Elegir las opciones: 
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Nombre del proyecto: my-app
 
-## Expanding the ESLint configuration
+Framework: React
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Variante: JavaScript o TypeScript
+
+```
+	cd my-app
+	npm install
+```
+Ejecutar el servidor de desarrollo:
+
+```
+	npm run dev
+```
+
+## 4. Vitest como code runner y React Testing Library
+
+```
+	npm install -D vitest
+	npm install --save-dev @testing-library/react @testing-library/dom
+```
+
+## 3. Instalar dependencias adicionales
+```
+	npm install react-router-dom
+	npm install jwt-decode
+```
+Correr finalmente para ver los test:
+```
+	npm run test
+```
+
+
