@@ -1,0 +1,52 @@
+/* styles.css
+   Paleta / tipografías Agatha Christie:
+   - fondo: #0D0D0D
+   - texto: #F8F1E7
+   - gold: #D4AF37
+   - burgundy: #6E0E0A
+   - green: #046307
+   Fonts: Playfair Display (titles), Merriweather (body), Lato (UI)
+*/
+
+/* importar fonts desde Google */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
+
+:root{
+  --bg: #0D0D0D;
+  --text: #F8F1E7;
+  --gold: #D4AF37;
+  --burg: #6E0E0A;
+  --green: #046307;
+}
+
+/* reset básico */
+*{ box-sizing: border-box; margin:0; padding:0; }
+html,body,#root{ height:100%; }
+body{
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Merriweather', serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Contenedor principal: divide en 2 mitades */
+.contenedor{
+  display:flex;
+  min-height:100vh;
+}
+
+/* Izquierda y derecha ocupan la mitad cada una */
+.izquierda,
+.derecha{
+  flex:1;
+  display:flex;
+  justify-content:center; /* centra horizontalmente el contenido */
+  align-items:center;     /* centra verticalmente */
+  padding: 2.5rem;
+  gap:1rem;
+  box-sizing:border-box;
+}
+
+/* separación dorada entre secciones */
+.izquierda{ border-right: 2px solid rgba(212,175,55,0.12); }
