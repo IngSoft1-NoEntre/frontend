@@ -17,6 +17,7 @@ const GameList = () => {
     try {
       const response = await fetch("http://localhost:8000/partidas", {
         headers: {
+          "Content-Type": "application/json",  // Indica que se envía JSON
           Authorization: `Bearer ${token}`,
         },
       });
@@ -28,29 +29,6 @@ const GameList = () => {
           (partida) => partida.estado === "disponible"
         );
         setPartidas(partidasDisponibles);
-      } else {
-        console.error("Error al cargar partidas");
-        // Datos de ejemplo para desarrollo
-        setPartidas([
-          {
-            id: 1,
-            nombre: "Partida de Principiantes",
-            estado: "disponible",
-            tipo: "publica",
-          },
-          {
-            id: 2,
-            nombre: "Mesa Rápida",
-            estado: "disponible",
-            tipo: "publica",
-          },
-          {
-            id: 3,
-            nombre: "Torneo Amistoso",
-            estado: "disponible",
-            tipo: "privada",
-          },
-        ]);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -200,7 +178,7 @@ const GameList = () => {
         <button
           className="btn-cta"
           onClick={unirseAPartida}
-          disabled={!partidaSeleccionada || isLoading || unirseCargando}
+          disabled={!partidaSeleccionada || unirseCargando}
         >
           {unirseCargando
             ? "Uniéndose..."

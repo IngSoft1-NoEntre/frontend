@@ -46,6 +46,14 @@ describe("GameForm integration", () => {
     render(<GameForm />);
     const form = screen.getByRole("form");
 
+    // la logitud del nombre no sea mayoa 30
+    fireEvent.change(screen.getByPlaceholderText(/Nombre de la partida/i), 
+    { target: { value: "Los increiblesssssssssssssssss" } });
+    fireEvent.submit(screen.getByRole("button", { name: /Crear/i }));
+    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), { target: { value: "2" } });
+    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), { target: { value: "2" } });
+    expect(alertMock).toHaveBeenCalledWith("El nombre no puede tener más de 29 caracteres.");
+
     // min < 2
     fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), { target: { value: "1" } });
     fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), { target: { value: "4" } });
