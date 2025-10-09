@@ -17,18 +17,15 @@ const GameList = () => {
     try {
       const response = await fetch("http://localhost:8000/partidas", {
         headers: {
-          "Content-Type": "application/json",  // Indica que se envía JSON
+          "Content-Type": "application/json", // Indica que se envía JSON
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         const data = await response.json();
-        // Solo mostrar partidas disponibles
-        const partidasDisponibles = data.filter(
-          (partida) => partida.estado === "disponible"
-        );
-        setPartidas(partidasDisponibles);
+        const partidasCreadas = data;
+        setPartidas(partidasCreadas);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -160,12 +157,6 @@ const GameList = () => {
                   </div>
 
                   {/* Información del tipo de partida */}
-                  <div className="info-item">
-                    <span className="label">Tipo:</span>
-                    <span className="value">
-                      {partida.tipo === "privada" ? "Privada 🔒" : "Pública 🌍"}
-                    </span>
-                  </div>
                 </div>
               </div>
             ))}
@@ -186,27 +177,34 @@ const GameList = () => {
             ? `Unirse a "${partidaSeleccionada.nombre}"`
             : "Selecciona una partida"}
         </button>
+      </div>
+    </div>
+  );
+};
 
-        <button
+export default GameList;
+
+/*
+27
+// Solo mostrar partidas disponibles
+        const partidasDisponibles = data.filter(
+          (partida) => partida.estado === "disponible"
+        );
+
+160
+<div className="info-item">
+                    <span className="label">Tipo:</span>
+                    <span className="value">
+                      {partida.tipo === "privada" ? "Privada 🔒" : "Pública 🌍"}
+                    </span>
+                  </div>
+
+        190
+<button
           className="btn-secondary"
           onClick={cargarPartidas}
           disabled={isLoading || unirseCargando}
         >
           {isLoading ? "Actualizando..." : "🔄 Actualizar"}
         </button>
-      </div>
-
-      {/* Info de debug */}
-      {process.env.NODE_ENV === "development" && partidaSeleccionada && (
-        <div className="debug-info">
-          <small>
-            Partida seleccionada: ID {partidaSeleccionada.id} - Tipo:{" "}
-            {partidaSeleccionada.tipo || "N/A"}
-          </small>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default GameList;
+*/
