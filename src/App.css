@@ -1,29 +1,24 @@
-/* styles.css
-   Paleta / tipografías Agatha Christie:
-   - fondo: #0D0D0D
-   - texto: #F8F1E7
-   - gold: #D4AF37
-   - burgundy: #6E0E0A
-   - green: #046307
-   Fonts: Playfair Display (titles), Merriweather (body), Lato (UI)
-*/
-
-/* importar fonts desde Google */
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
 
 :root{
-  --bg: #0D0D0D;
-  --text: #F8F1E7;
-  --gold: #D4AF37;
-  --burg: #6E0E0A;
-  --green: #046307;
+  --bg: #7A1E1E;      /* fondo principal */
+  --panel: #C19A6B;   /* color principal para tarjetas */
+  --panel-light: #FFF8E1; /* fondo inputs / superficies claras */
+  --text-dark: #2E2E2E;   /* texto principal */
+  --text-light: #F8F1E7;/* Fondo pantalla centrado */
 }
 
 /* reset básico */
 *{ box-sizing: border-box; margin:0; padding:0; }
 html,body,#root{ height:100%; }
 body{
-  background: var(--bg);
+  /* Propiedades añadidas para centrar la imagen */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100%;
+  /* Fin de propiedades para centrar */
+
+  background-image:url(./assets/home.png);
   color: var(--text);
   font-family: 'Merriweather', serif;
   -webkit-font-smoothing:antialiased;
@@ -48,5 +43,3 @@ body{
   box-sizing:border-box;
 }
 
-/* separación dorada entre secciones */
-.izquierda{ border-right: 2px solid rgba(212,175,55,0.12); }
