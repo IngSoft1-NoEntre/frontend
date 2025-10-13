@@ -35,6 +35,10 @@ import card_27 from '../assets/Cartas/27-devious_fauxpas.png';
 //ejemplo suponiendo que hay un id unico por carta
 const GameStateProvider = ({ children }) => {
 
+
+  //estado del juego, en un componente separado para ganar eficiencia
+  const [ThePlayerCards, setThePlayerCards] = useState([]);
+
   // esto es un dict para consultar que imagen tiene que mostrar cada carta
   // formas de hacerlo:
   // 1) con dict, llaves con strings, pero es menos eficiente ?  igual son pocas cartas, debe tener algun cache?
@@ -43,35 +47,35 @@ const GameStateProvider = ({ children }) => {
     "help" : card_00,
     "card_back" : card_01,
     "murder_escapes" : card_02,
-    "secret_murderer" : card_03,
-    "secret_accomplice" : card_04,
-    "secret_front" : card_05,
+    "youre_the_murderer" : card_03,
+    "youre_the_accomplice" : card_04,
+    "varios" : card_05,
     "secret_back" : card_06,
-    "detective_poirot" : card_07,
-    "detective_marple" : card_08,
-    "detective_satterthwaite" : card_09,
-    "detective_pyne" : card_10,
-    "detective_brent" : card_11,
-    "detective_tommyberesford" : card_12,
-    "detective_tuppenceberesford" : card_13,
-    "detective_quin" : card_14,
-    "detective_oliver" : card_15,
-    "Instant_notsofast" : card_16,
-    "event_cardsonthetable" : card_17,
-    "event_anothervictim" : card_18,
-    "event_deadcardfolly" : card_19,
-    "event_lookashes" : card_20,
-    "event_cardtrade" : card_21,
-    "event_onemore" : card_22,
-    "event_delayescape" : card_23,
-    "event_earlytrain" : card_24,
-    "event_pointsuspicions" : card_25,
-    "devious_blackmailed" : card_26,
-    "devious_fauxpas" : card_27,
+    "hercule_poirot" : card_07,
+    "miss_marple" : card_08,
+    "mr_satterthwhite" : card_09,
+    "parker_pyne" : card_10,
+    "lady_eileen_brent" : card_11,
+    "tommy_beresford" : card_12,
+    "tuppence_beresford" : card_13,
+    "harley_quin_wildcard" : card_14,
+    "ariadne_oliver" : card_15,
+    "not_so_fast" : card_16,
+    "cards_off_the_table" : card_17,
+    "another_victim" : card_18,
+    "dead_card_folly" : card_19,
+    "look_into_the_ashes" : card_20,
+    "card_trade" : card_21,
+    "and_then_there_was_one_more" : card_22,
+    "delay_the_murderers_space" : card_23,
+    "early_train_to_paddington" : card_24,
+    "point_your_suspicions" : card_25,
+    "blackmailed" : card_26,
+    "social_faux_pass" : card_27,
   });
 
   return (
-    <GameStateContext.Provider value={{ cardPictures }}>
+    <GameStateContext.Provider value={{ ThePlayerCards, setThePlayerCards, cardPictures }}>
       {children}
     </GameStateContext.Provider>
   );

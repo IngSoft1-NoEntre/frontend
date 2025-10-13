@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useContext } from "react";
+import { GameStateContext } from "../context/GameStateContext";
 import useGameSocket from './useGameSocket';
 import Hand from './Hand'
 
 
 const GameScreen = () => {
+  //game context
+  const { ThePlayerCards } = useContext(GameStateContext);
 
   //socket
   const { 
@@ -13,23 +16,11 @@ const GameScreen = () => {
     connectionStatus 
   } = useGameSocket();
 
-  
-
-  //mano del jugador
-  const [thePlayerCards, setThePlayerCards] = useState([
-    [14, "detective_satterthwaite"],
-    [7, "detective_poirot"],
-    [8, "detective_poirot"],
-    [10, "detective_pyne"],
-    [9, "detective_poirot"],
-  ]);
-
-
 
   return(
   <div>
     <h2>Game Status: {connectionStatus}</h2>
-    <Hand cards={thePlayerCards}/>
+    <Hand cards={ThePlayerCards}/>
   </div>)
 
 };
