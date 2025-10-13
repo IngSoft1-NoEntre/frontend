@@ -1,0 +1,8 @@
+.hand{
+  display:flex;
+  gap:1px;
+  align-items:end;
+  justify-content:center;
+  padding:3px;
+  z-index:30;
+}

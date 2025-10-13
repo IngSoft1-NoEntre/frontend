@@ -1,0 +1,66 @@
+/* -------------------------------------------------------------------
+ Estilo "dinamico" para card.jsx, cambia segun el nombre de las clases en card.jsx
+
+ Cardframe es el borde de la carta
+
+ Cardframe .cardpic es la imagen en si (que esta dentro del frame)
+
+ esta separacion permite algunos efectos simples...
+
+------------------------------------------------------------------- */
+
+.cardframe {
+  /* el tamaño que ocupa el cardframe,  */
+  height: 15%;
+  width: 15%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.02);
+  position: relative; 
+  transition: all 0.3s ease-in-out;
+  display: flex;
+}
+
+/* estilo para la imagen (que esta dentro del frame) */
+/* para el efecto de superposicion, la imagen en si es mas grande que el div cardframe */
+.cardframe .cardpic {
+  width: 75px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  display: flex;
+}
+
+/* -------------------------------------------------------------------
+  Estilo cuando el mouse entra a la carta (HOVER)
+------------------------------------------------------------------- */
+.cardframe--hover {
+  z-index: 50;
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.45);
+}
+
+/* -------------------------------------------------------------------
+  Estilo cuando se aprieta Ctrl (y el mouse entro a la carta), el zoom
+------------------------------------------------------------------- */
+.cardframe--zoom {
+  position: relative;
+  transform: scale(3) translate(-30%, -30%); 
+  transform-origin: center center; 
+  z-index: 100;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* -------------------------------------------------------------------
+   Otros Estilos
+------------------------------------------------------------------- */
+.card__back {
+  background: linear-gradient(180deg, rgba(234,179,8,0.12), rgba(234,179,8,0.04));
+  width: 100%;
+  font-weight: 700;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
