@@ -16,7 +16,7 @@ const useGameSocket = () => {
       {
         share: false,
         shouldReconnect: () => true,
-        onOpen: () => console.log('useGameSocket opened'),
+        onOpen: () => console.log('GameSocket opened'),
       }
   )
 
@@ -26,7 +26,7 @@ const useGameSocket = () => {
     const msg = lastJsonMessage.payload;
     const eventType = lastJsonMessage.evento;
 
-    console.log(`[Socket] incoming event: ${eventType}`);
+    console.log(`[GameSocket] incoming event: ${eventType}`);
 
     switch (eventType) {
       case 'iniciada':
@@ -43,7 +43,7 @@ const useGameSocket = () => {
       case 'turno_cambiado':
         break;
       default:
-        console.warn(`[Socket] Unkwown event type: ${eventType}`, msg);
+        console.warn(`[GameSocket] Unkwown event type: ${eventType}`, msg);
         break;
     }
 
