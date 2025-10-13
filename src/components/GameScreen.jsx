@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useGameSocket from './useGameSocket';
 import Hand from './Hand'
 
@@ -12,6 +12,8 @@ const GameScreen = () => {
     readyState,
     connectionStatus 
   } = useGameSocket();
+
+  
 
   //mano del jugador
   const [thePlayerCards, setThePlayerCards] = useState([
