@@ -6,6 +6,7 @@ import Hand from "./Hand";
 import Controls from "./Controls";
 import Secret from "./Secret";
 
+const TOTAL_CARDS = 64; 
 /**
  * GameScreen dinámico: acepta `players`
  * Filtra entradas vacías / comentadas y distribuye la UI según la cantidad:
@@ -24,11 +25,28 @@ export default function GameScreen({ players }) {
     { id: 4, nombre: "Emanuel", secretos: [false, false, false], isLocal: false },
     { id: 5, nombre: "Agustin", secretos: [false, false, false], isLocal: false },
     { id: 6, nombre: "Lucas", secretos: [true, true, true], isLocal: true, cards: [
-        { title: "NotSoFast" },{ title: "Event" },{ title: "Detective" },
-        { title: "Detective" },{ title: "Event" },{ title: "Event" }
-      ]
-    },
+    // Usar las claves exactas del diccionario
+    { title: "not_so_fast" }, 
+    { title: "cards_off_the_table" }, // Asumiendo que "Event" es "cards_off_the_table"
+    { title: "hercule_poirot" },       // Asumiendo que "Detective" es "hercule_poirot"
+    { title: "miss_marple" },          // Usamos otro detective
+    { title: "cards_off_the_table" },
+    { title: "dead_card_folly" }
+  ]
+},
   ];
+  // Simulación del estado del descarte. Este array se actualizará con WS
+  const discardPileCards = [
+    { title: "hercule_poirot", type: "Detective"}, // Usar la clave exacta
+    { title: "not_so_fast", type: "Instant"},   // Usar la clave exacta
+    // **La última carta que quieres mostrar:**
+    { title: "look_into_the_ashes", type: "Event" } 
+];
+
+  // Cálculo de los contadores:
+  const discardCount = discardPileCards.length;
+  // El mazo regular es el Total menos las descartadas.
+  const deckCount = TOTAL_CARDS - discardCount; 
 
   // Usa players pasados como prop si existen, si no samplePlayers
   const rawList = Array.isArray(players) ? players : samplePlayers;
@@ -105,7 +123,11 @@ export default function GameScreen({ players }) {
 
         {/* Centro: mazos */}
         <div className="center-area">
-          <Deck discardTop={{ title: "Descarte" }} />
+          <Deck 
+            discardCards={discardPileCards} 
+            deckCount={deckCount}
+            totalCards={TOTAL_CARDS} 
+          />
         </div>
 
         {/* Local: mano + secretos */}
