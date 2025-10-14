@@ -1,614 +1,176 @@
-/* TurnoIndicator.css */
+/* TurnoIndicator.css - Compacto para esquina */
 
-.turno-indicator {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  border-radius: 8px;
-  padding: 1rem;
-  max-width: 400px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+.turno-indicator-compact {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(0, 0, 0, 0.09)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px; /* Reduced from 12px */
+  padding: 10px 14px; /* Reduced from 12px 16px */
+  min-width: 180px; /* Reduced from 200px */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 100;
   transition: all 0.3s ease;
 }
 
-/* Estado cuando es tu turno */
-.turno-indicator.mi-turno {
-  border-color: var(--gold);
-  box-shadow: 0 0 16px rgba(212, 175, 55, 0.4);
-  animation: pulseGlow 2s ease-in-out infinite;
+.turno-indicator-compact.mi-turno {
+  border-color: rgba(255, 255, 255, 0.2); /* Removed golden border */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* Removed golden glow */
+  /* Removed animation: pulseGlowCompact */
 }
 
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 16px rgba(212, 175, 55, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 24px rgba(212, 175, 55, 0.6);
-  }
-}
+/* Removed pulseGlowCompact keyframes entirely */
 
-/* Estado de carga */
-.turno-indicator.loading-state {
+/* Mensaje de turno */
+.turno-mensaje-compact {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-  padding: 1.5rem;
-  color: rgba(255,255,255,0.7);
-}
-
-.spinner-small {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(212,175,55,0.2);
-  border-top: 2px solid var(--gold);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-/* Mensaje de error */
-.turno-error {
-  background: rgba(244, 67, 54, 0.1);
-  border: 1px solid rgba(244, 67, 54, 0.3);
-  border-radius: 4px;
-  padding: 0.5rem;
-  margin-bottom: 0.8rem;
-  font-size: 0.85rem;
-  color: #f44336;
-  text-align: center;
-}
-
-/* Header del turno */
-.turno-header {
-  margin-bottom: 1rem;
-  padding-bottom: 0.8rem;
+  gap: 7px; /* Reduced from 8px */
+  margin-bottom: 9px; /* Reduced from 10px */
+  padding-bottom: 7px; /* Reduced from 8px */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.turno-mensaje {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  justify-content: center;
+.turno-icono-compact {
+  font-size: 1.1rem; /* Reduced from 1.2rem */
+  flex-shrink: 0;
 }
 
-.turno-icono {
-  font-size: 1.5rem;
+.turno-indicator-compact.mi-turno .turno-icono-compact {
+  animation: iconPulseCompact 1.5s ease-in-out infinite;
 }
 
-.turno-icono.animate-pulse {
-  animation: iconPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes iconPulse {
+@keyframes iconPulseCompact {
   0%, 100% {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.2);
+    transform: scale(1.1); /* Reduced from 1.15 */
   }
 }
 
-.turno-texto {
-  font-size: 1rem;
+.turno-texto-compact {
+  font-size: 0.8rem; /* Reduced from 0.9rem */
   color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-}
-
-.turno-texto strong {
-  color: var(--gold);
-  font-weight: 700;
-}
-
-/* NUEVO: Lista de orden de turnos */
-.orden-turnos {
-  margin-bottom: 1rem;
-  padding: 0.8rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.orden-title {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
-.jugadores-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.jugador-item {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 0.5rem 0.8rem;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 4px;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.jugador-item.activo {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: rgba(212, 175, 55, 0.3);
-  animation: highlightActive 0.5s ease-out;
-}
-
-@keyframes highlightActive {
-  0% {
-    transform: translateX(-5px);
-    background: rgba(212, 175, 55, 0.3);
-  }
-  100% {
-    transform: translateX(0);
-    background: rgba(212, 175, 55, 0.15);
-  }
-}
-
-.jugador-item.yo {
-  border-left: 3px solid var(--gold);
-}
-
-.jugador-numero {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  background: rgba(212, 175, 55, 0.2);
-  color: var(--gold);
-  border-radius: 50%;
-  font-size: 0.75rem;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.jugador-item.activo .jugador-numero {
-  background: var(--gold);
-  color: #1a1a1a;
-}
-
-.jugador-nombre {
-  flex: 1;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
-}
-
-.jugador-item.activo .jugador-nombre {
-  color: var(--gold);
-  font-weight: 600;
-}
-
-.jugador-indicador {
-  color: var(--gold);
-  font-size: 0.9rem;
-  animation: blink 1.5s ease-in-out infinite;
-}
-
-@keyframes blink {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
-}
-
-/* Área de acciones */
-.turno-acciones {
-  position: relative;
-  min-height: 120px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* Reloj de arena cuando no es tu turno */
-.reloj-arena {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-}
-
-.hourglass {
-  width: 60px;
-  height: 80px;
-  position: relative;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-.hourglass-top,
-.hourglass-bottom {
-  width: 0;
-  height: 0;
-  border-left: 30px solid transparent;
-  border-right: 30px solid transparent;
-}
-
-.hourglass-top {
-  border-bottom: 35px solid rgba(212, 175, 55, 0.6);
-  position: relative;
-  animation: sandTop 2s ease-in-out infinite;
-}
-
-.hourglass-bottom {
-  border-top: 35px solid rgba(212, 175, 55, 0.6);
-  animation: sandBottom 2s ease-in-out infinite;
-}
-
-@keyframes sandTop {
-  0% {
-    border-bottom-width: 35px;
-  }
-  50%, 100% {
-    border-bottom-width: 0px;
-  }
-}
-
-@keyframes sandBottom {
-  0%, 50% {
-    border-top-width: 0px;
-  }
-  100% {
-    border-top-width: 35px;
-  }
-}
-
-.hourglass-middle {
-  width: 6px;
-  height: 10px;
-  background: rgba(212, 175, 55, 0.4);
-  margin: 0 auto;
-  position: relative;
-  animation: sandFlow 2s ease-in-out infinite;
-}
-
-@keyframes sandFlow {
-  0%, 100% {
-    height: 2px;
-    opacity: 0.3;
-  }
-  50% {
-    height: 10px;
-    opacity: 1;
-  }
-}
-
-/* Contenedor de botones */
-.botones-container {
-  display: flex;
-  gap: 0.8rem;
-  transition: opacity 0.3s ease;
-}
-
-.botones-container.disabled {
-  opacity: 0.3;
-  filter: blur(1px);
-  pointer-events: none;
+.turno-indicator-compact.mi-turno .turno-texto-compact {
+  color: rgba(255, 255, 255, 0.95); /* Changed from golden #d4af37 to white */
 }
 
 /* Botones de acción */
-.btn-accion {
+.turno-botones-compact {
+  display: flex;
+  gap: 7px; /* Reduced from 8px */
+}
+
+.btn-turno {
   flex: 1;
-  padding: 0.8rem 1.2rem;
+  padding: 7px 11px; /* Reduced from 8px 12px */
   border: none;
-  border-radius: 6px;
+  border-radius: 5px; /* Reduced from 6px */
   font-family: 'Lato', sans-serif;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.7rem; /* Reduced from 0.8rem */
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px; /* Reduced from 0.5px */
+  white-space: nowrap;
 }
 
-.btn-principal {
-  background: linear-gradient(135deg, var(--gold), #c9a553);
-  color: #1a1a1a;
+.btn-principal-turno {
+  background: linear-gradient(135deg, #666, #888); /* Changed from golden gradient */
+  color: #ffffff; /* Changed from #0d0d0d */
 }
 
-.btn-principal:hover:not(:disabled) {
-  background: linear-gradient(135deg, #e6c76f, var(--gold));
+.btn-principal-turno:hover:not(:disabled) {
+  background: linear-gradient(135deg, #777, #999); /* Changed from golden hover */
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Removed golden shadow */
 }
 
-.btn-secundaria {
+.btn-secundaria-turno {
   background: transparent;
-  border: 2px solid rgba(212, 175, 55, 0.5);
-  color: var(--gold);
+  border: 2px solid rgba(255, 255, 255, 0.3); /* Changed from golden border */
+  color: rgba(255, 255, 255, 0.8); /* Changed from golden color */
 }
 
-.btn-secundaria:hover:not(:disabled) {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: var(--gold);
+.btn-secundaria-turno:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1); /* Changed from golden background */
+  border-color: rgba(255, 255, 255, 0.5); /* Changed from golden border */
   transform: translateY(-2px);
 }
 
-.btn-accion:disabled {
+.btn-turno:disabled {
   cursor: not-allowed;
   opacity: 0.4;
+  filter: grayscale(0.5);
 }
 
-.btn-accion:disabled:hover {
+.btn-turno:disabled:hover {
   transform: none;
+  box-shadow: none;
 }
 
 /* Animación de entrada */
-@keyframes slideDown {
+@keyframes slideInFromRight {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateX(45px); /* Reduced from 50px */
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
-.turno-indicator {
-  animation: slideDown 0.4s ease-out;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.turno-indicator-compact {
+  animation: slideInFromRight 0.4s ease-out;
 }
 
 /* Responsive */
-@media (max-width: 480px) {
-  .turno-indicator {
-    max-width: 100%;
-    padding: 0.8rem;
+@media (max-width: 768px) {
+  .turno-indicator-compact {
+    bottom: 10px;
+    right: 10px;
+    min-width: 160px; /* Reduced from 180px */
+    padding: 9px 11px; /* Reduced from 10px 12px */
   }
 
-  .botones-container {
+  .turno-mensaje-compact {
+    font-size: 0.75rem; /* Reduced from 0.85rem */
+  }
+
+  .turno-botones-compact {
     flex-direction: column;
-  }
-
-  .turno-mensaje {
-    font-size: 0.9rem;
-  }
-
-  .hourglass {
-    transform: scale(0.8);
   }
   
-  .jugadores-list {
-    font-size: 0.85rem;
+  .btn-turno {
+    font-size: 0.65rem; /* Reduced from 0.75rem */
+    padding: 5px 9px; /* Reduced from 6px 10px */
   }
 }
 
-/* Header del turno */
-.turno-header {
-  margin-bottom: 1rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.turno-mensaje {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  justify-content: center;
-}
-
-.turno-icono {
-  font-size: 1.5rem;
-}
-
-.turno-texto {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-}
-
-.turno-texto strong {
-  color: var(--gold);
-  font-weight: 700;
-}
-
-/* Área de acciones */
-.turno-acciones {
-  position: relative;
-  min-height: 120px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* Reloj de arena cuando no es tu turno */
-.reloj-arena {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-}
-
-.hourglass {
-  width: 60px;
-  height: 80px;
-  position: relative;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-.hourglass-top,
-.hourglass-bottom {
-  width: 0;
-  height: 0;
-  border-left: 30px solid transparent;
-  border-right: 30px solid transparent;
-}
-
-.hourglass-top {
-  border-bottom: 35px solid rgba(212, 175, 55, 0.6);
-  position: relative;
-  animation: sandTop 2s ease-in-out infinite;
-}
-
-.hourglass-bottom {
-  border-top: 35px solid rgba(212, 175, 55, 0.6);
-  animation: sandBottom 2s ease-in-out infinite;
-}
-
-@keyframes sandTop {
-  0% {
-    border-bottom-width: 35px;
-  }
-  50%, 100% {
-    border-bottom-width: 0px;
-  }
-}
-
-@keyframes sandBottom {
-  0%, 50% {
-    border-top-width: 0px;
-  }
-  100% {
-    border-top-width: 35px;
-  }
-}
-
-.hourglass-middle {
-  width: 6px;
-  height: 10px;
-  background: rgba(212, 175, 55, 0.4);
-  margin: 0 auto;
-  position: relative;
-  animation: sandFlow 2s ease-in-out infinite;
-}
-
-@keyframes sandFlow {
-  0%, 100% {
-    height: 2px;
-    opacity: 0.3;
-  }
-  50% {
-    height: 10px;
-    opacity: 1;
-  }
-}
-
-/* Contenedor de botones */
-.botones-container {
-  display: flex;
-  gap: 0.8rem;
-  transition: opacity 0.3s ease;
-}
-
-.botones-container.disabled {
-  opacity: 0.3;
-  filter: blur(1px);
-  pointer-events: none;
-}
-
-/* Botones de acción */
-.btn-accion {
-  flex: 1;
-  padding: 0.8rem 1.2rem;
-  border: none;
-  border-radius: 6px;
-  font-family: 'Lato', sans-serif;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.btn-principal {
-  background: linear-gradient(135deg, var(--gold), #c9a553);
-  color: #1a1a1a;
-}
-
-.btn-principal:hover:not(:disabled) {
-  background: linear-gradient(135deg, #e6c76f, var(--gold));
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
-}
-
-.btn-secundaria {
-  background: transparent;
-  border: 2px solid rgba(212, 175, 55, 0.5);
-  color: var(--gold);
-}
-
-.btn-secundaria:hover:not(:disabled) {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: var(--gold);
-  transform: translateY(-2px);
-}
-
-.btn-accion:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-}
-
-.btn-accion:disabled:hover {
-  transform: none;
-}
-
-/* Animación de entrada */
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* Keep the base .turno-indicator class unchanged */
 .turno-indicator {
-  animation: slideDown 0.4s ease-out;
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-  .turno-indicator {
-    max-width: 100%;
-    padding: 0.8rem;
-  }
-
-  .botones-container {
-    flex-direction: column;
-  }
-
-  .turno-mensaje {
-    font-size: 0.9rem;
-  }
-
-  .hourglass {
-    transform: scale(0.8);
-  }
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(0, 0, 0, 0.09)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  transition: all 0.3s ease;
 }
