@@ -30,7 +30,7 @@ import card_25 from '../assets/Cartas/25-event_pointsuspicions.png';
 import card_26 from '../assets/Cartas/26-devious_blackmailed.png';
 import card_27 from '../assets/Cartas/27-devious_fauxpas.png';
 
-
+const TOTAL_CARDS = 64;
 
 //ejemplo suponiendo que hay un id unico por carta
 const GameStateProvider = ({ children }) => {
@@ -74,8 +74,39 @@ const GameStateProvider = ({ children }) => {
     "social_faux_pass" : card_27,
   });
 
+  const [discardPileCards, setDiscardPileCards] = useState([]);
+
+  // funcion para descartar
+    const discardOneCard = () => {
+        const currentDiscardCount = discardPileCards.length;
+        if (currentDiscardCount < TOTAL_CARDS) {
+            
+            // --- Lógica de simulación para tomar una carta aleatoria ---
+            const availableKeys = Object.keys(cardPictures).filter(key => 
+                key !== "card_back" && key !== "secret_back" && key !== "help"
+            );
+            const randomKey = availableKeys[Math.floor(Math.random() * availableKeys.length)];
+            
+            // Actualiza el estado añadiendo una nueva carta
+            setDiscardPileCards(prevCards => [
+                ...prevCards,
+                { title: randomKey, type: "Simulated" } 
+            ]);
+        }
+    };
+
+    const contextValue = { 
+        ThePlayerCards, 
+        setThePlayerCards, 
+        cardPictures,
+        // ESTO ES LO NUEVO:
+        discardPileCards,       // El array de cartas descartadas
+        discardOneCard,         // La función para descartar
+        TOTAL_CARDS             // La constante total
+    };
+
   return (
-    <GameStateContext.Provider value={{ ThePlayerCards, setThePlayerCards, cardPictures }}>
+    <GameStateContext.Provider value={contextValue}>
       {children}
     </GameStateContext.Provider>
   );

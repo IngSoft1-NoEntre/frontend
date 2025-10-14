@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useContext, useState } from "react";
+import { GameStateContext } from "../context/GameStateContext";
 import "./GameScreen.css";
 import Player from "./Player";
 import Deck from "./Deck";
 import Hand from "./Hand";
-import Controls from "./Controls";
 import Secret from "./Secret";
+import Controls from "./Controls";
+import FinishGameModal from "./FinishGameModal";
 
-const TOTAL_CARDS = 64; 
 /**
  * GameScreen dinámico: acepta `players`
  * Filtra entradas vacías / comentadas y distribuye la UI según la cantidad:
@@ -17,36 +18,68 @@ const TOTAL_CARDS = 64;
  * 6 -> local + 2 left + 2 right + 1 arriba
  */
 export default function GameScreen({ players }) {
+  // Lo inicializamos en 'false'. Se abrirá automáticamente más adelante
+  const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
+
+  const { discardPileCards, TOTAL_CARDS } = useContext(GameStateContext);
+
   // ejemplo de render con jugadores — podés comentar jugadores con "//" de este array para probar:
   const samplePlayers = [
     { id: 1, nombre: "Juan", secretos: [false, false, false], isLocal: false },
     //{ id: 2, nombre: "Jere", secretos: [false, false, false], isLocal: false },
-    { id: 3, nombre: "Veronica", secretos: [false, false, false], isLocal: false }, // ejemplo comentado
-    { id: 4, nombre: "Emanuel", secretos: [false, false, false], isLocal: false },
-    { id: 5, nombre: "Agustin", secretos: [false, false, false], isLocal: false },
-    { id: 6, nombre: "Lucas", secretos: [true, true, true], isLocal: true, cards: [
-    // Usar las claves exactas del diccionario
-    { title: "not_so_fast" }, 
-    { title: "cards_off_the_table" }, // Asumiendo que "Event" es "cards_off_the_table"
-    { title: "hercule_poirot" },       // Asumiendo que "Detective" es "hercule_poirot"
-    { title: "miss_marple" },          // Usamos otro detective
-    { title: "cards_off_the_table" },
-    { title: "dead_card_folly" }
-  ]
-},
+    {
+      id: 3,
+      nombre: "Veronica",
+      secretos: [false, false, false],
+      isLocal: false,
+    }, // ejemplo comentado
+    {
+      id: 4,
+      nombre: "Emanuel",
+      secretos: [false, false, false],
+      isLocal: false,
+    },
+    {
+      id: 5,
+      nombre: "Agustin",
+      secretos: [false, false, false],
+      isLocal: false,
+    },
+    {
+      id: 6,
+      nombre: "Lucas",
+      secretos: [true, true, true],
+      isLocal: true,
+      cards: [
+        // Usar las claves exactas del diccionario
+        { title: "not_so_fast" },
+        { title: "cards_off_the_table" }, // Asumiendo que "Event" es "cards_off_the_table"
+        { title: "hercule_poirot" }, // Asumiendo que "Detective" es "hercule_poirot"
+        { title: "miss_marple" }, // Usamos otro detective
+        { title: "cards_off_the_table" },
+        { title: "dead_card_folly" },
+      ],
+    },
   ];
-  // Simulación del estado del descarte. Este array se actualizará con WS
-  const discardPileCards = [
-    { title: "hercule_poirot", type: "Detective"}, // Usar la clave exacta
-    { title: "not_so_fast", type: "Instant"},   // Usar la clave exacta
-    // **La última carta que quieres mostrar:**
-    { title: "look_into_the_ashes", type: "Event" } 
-];
 
   // Cálculo de los contadores:
   const discardCount = discardPileCards.length;
   // El mazo regular es el Total menos las descartadas.
-  const deckCount = TOTAL_CARDS - discardCount; 
+  const deckCount = TOTAL_CARDS - discardCount;
+  //condicion de fin de juego
+  const isDeckEmpty = deckCount <= 0;
+
+  // Si el mazo está vacío Y el modal no se ha abierto, lo abrimos.
+  // Usaremos un efecto para manejar esta apertura automática:
+  React.useEffect(() => {
+    if (isDeckEmpty && !isGameOverModalOpen) {
+      setIsGameOverModalOpen(true);
+    }
+  }, [isDeckEmpty, isGameOverModalOpen]);
+
+  // La función para cerrar el modal (usada en el botón "Volver a jugar" del modal)
+  // Aunque "Volver a jugar" navega, tener esta función de cierre es buena práctica.
+  const closeGameOverModal = () => setIsGameOverModalOpen(false);
 
   // Usa players pasados como prop si existen, si no samplePlayers
   const rawList = Array.isArray(players) ? players : samplePlayers;
@@ -64,7 +97,9 @@ export default function GameScreen({ players }) {
 
   // distribución según cantidad total
   const total = 1 + others.length; // local + otros
-  let left = [], right = [], top = [];
+  let left = [],
+    right = [],
+    top = [];
 
   switch (total) {
     case 2:
@@ -101,14 +136,20 @@ export default function GameScreen({ players }) {
     <div className="game-root">
       <div className="game-table">
         {/* columna izquierda */}
-        <div className="players-col players-left" aria-hidden={left.length === 0}>
+        <div
+          className="players-col players-left"
+          aria-hidden={left.length === 0}
+        >
           {left.map((p) => (
             <Player key={p.id} player={p} />
           ))}
         </div>
 
         {/* columna derecha */}
-        <div className="players-col players-right" aria-hidden={right.length === 0}>
+        <div
+          className="players-col players-right"
+          aria-hidden={right.length === 0}
+        >
           {right.map((p) => (
             <Player key={p.id} player={p} />
           ))}
@@ -123,10 +164,10 @@ export default function GameScreen({ players }) {
 
         {/* Centro: mazos */}
         <div className="center-area">
-          <Deck 
-            discardCards={discardPileCards} 
+          <Deck
+            discardCards={discardPileCards}
             deckCount={deckCount}
-            totalCards={TOTAL_CARDS} 
+            totalCards={TOTAL_CARDS}
           />
         </div>
 
@@ -134,16 +175,26 @@ export default function GameScreen({ players }) {
         <div className="local-area" aria-label="Area local">
           <div className="hand-and-secrets">
             <Hand cards={local.cards || []} />
-            <div className="local-secrets-horizontal" aria-label="Secretos del jugador">
-              {(local.secretos || [false, false, false]).slice(0,3).map((s, i) => (
-                <Secret key={i} revealed={Boolean(s)} />
-              ))}
+            <div
+              className="local-secrets-horizontal"
+              aria-label="Secretos del jugador"
+            >
+              {(local.secretos || [false, false, false])
+                .slice(0, 3)
+                .map((s, i) => (
+                  <Secret key={i} revealed={Boolean(s)} />
+                ))}
             </div>
           </div>
         </div>
 
-        {/*<Controls />*/}
+        <Controls />
       </div>
+      {isGameOverModalOpen && (
+        <FinishGameModal
+          onClose={closeGameOverModal}
+        />
+      )}
     </div>
   );
 }
