@@ -7,6 +7,7 @@ import Hand from "./Hand";
 import Secret from "./Secret";
 import Controls from "./Controls";
 import FinishGameModal from "./FinishGameModal";
+import SecretModal from "./SecretModal";
 
 /**
  * GameScreen dinámico: acepta `players`
@@ -80,6 +81,10 @@ export default function GameScreen({ players }) {
   // La función para cerrar el modal (usada en el botón "Volver a jugar" del modal)
   // Aunque "Volver a jugar" navega, tener esta función de cierre es buena práctica.
   const closeGameOverModal = () => setIsGameOverModalOpen(false);
+  // estado modal
+  const [openSecret, setOpenSecret] = useState(null);
+  const openSecretModal = (data) => { if (data?.revealed) setOpenSecret(data); };
+  const closeSecretModal = () => setOpenSecret(null);
 
   // Usa players pasados como prop si existen, si no samplePlayers
   const rawList = Array.isArray(players) ? players : samplePlayers;
@@ -132,6 +137,10 @@ export default function GameScreen({ players }) {
       break;
   }
 
+  // rutas de imagen (si están en public/assets)
+  const back = "/assets/img/05-secret_back.png";
+  const front  = "/assets/img/06-secret_front.png";
+
   return (
     <div className="game-root">
       <div className="game-table">
@@ -141,7 +150,7 @@ export default function GameScreen({ players }) {
           aria-hidden={left.length === 0}
         >
           {left.map((p) => (
-            <Player key={p.id} player={p} />
+            <Player key={p.id} player={p} onOpenSecret={openSecretModal}/>
           ))}
         </div>
 
@@ -151,14 +160,14 @@ export default function GameScreen({ players }) {
           aria-hidden={right.length === 0}
         >
           {right.map((p) => (
-            <Player key={p.id} player={p} />
+            <Player key={p.id} player={p} onOpenSecret={openSecretModal}/>
           ))}
         </div>
 
         {/* fila superior (puede tener 0,1 o 2 jugadores) */}
         <div className="players-top-row">
           {top.map((p) => (
-            <Player key={p.id} player={p} />
+            <Player key={p.id} player={p}onOpenSecret={openSecretModal}/>
           ))}
         </div>
 
@@ -175,19 +184,24 @@ export default function GameScreen({ players }) {
         <div className="local-area" aria-label="Area local">
           <div className="hand-and-secrets">
             <Hand cards={localPlayerCards || []} />
-            <div
-              className="local-secrets-horizontal"
-              aria-label="Secretos del jugador"
-            >
-              {(local.secretos || [false, false, false])
-                .slice(0, 3)
-                .map((s, i) => (
-                  <Secret key={i} revealed={Boolean(s)} />
-                ))}
+            <div className="local-secrets-horizontal" aria-label="Secretos del jugador">
+              {(local.secretos || []).slice(0, 3).map((s, i) => (
+                <Secret
+                  key={i}
+                  revealed={Boolean(s)}
+                  isLocal={true}
+                  data={{
+                    title: `Secreto ${i + 1}`,
+                    frontImage: front,
+                    backImage: back,
+                  }}
+                  onOpen={(d) => openSecretModal({ ...d, revealed: true })}
+                />
+              ))}
             </div>
           </div>
         </div>
-
+        <SecretModal item={openSecret} onClose={closeSecretModal} />
         <Controls />
       </div>
       {isGameOverModalOpen && (

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./LobbyContainer.css"; // Estilos personalizados para el lobby
 import { jwtDecode } from "jwt-decode";
-import lobby from  "../assets/lobby.png";
+import lobby from "../assets/img/lobby.png";
 
 const LobbyContainer = () => {
   // Obtiene el ID de la partida desde la URL
@@ -96,7 +96,7 @@ const LobbyContainer = () => {
 
       {/* Botón para iniciar la partida,solo visible si el jugador es owner */}
       {partida?.owner_id == jugadorId && (
-        <button onClick={handleIniciar}>Iniciar partida</button>
+        <button className="iniciar-partida" onClick={handleIniciar}>Iniciar partida</button>
       )}
     </div>
   );

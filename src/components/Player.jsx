@@ -20,11 +20,22 @@ export default function Player({ player }) {
 
       {/* secretos alineados debajo del jugador */}
       <div className="player-secrets-row">
-        {secretos.slice(0, 3).map((s, i) => (
-          <Secret key={i} revealed={Boolean(isLocal && s)} />
+        {secretos.slice(0,3).map((s,i) => (
+          <Secret
+            key={i}
+            revealed={Boolean(isLocal && s)}
+            hoverReveal={!isLocal}
+            data={{
+              revealed: Boolean(isLocal && s),
+              title: `${nombre} - Secreto ${i+1}`,
+              text: isLocal && s ? "Contenido privado" : null
+            }}
+            onOpen={(data) => {
+              if (data?.revealed) onOpenSecret && onOpenSecret({ ...data, owner: nombre });
+            }}
+          />
         ))}
       </div>
     </div>
   );
 }
-
