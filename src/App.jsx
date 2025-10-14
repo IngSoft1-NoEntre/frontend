@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import GameForm from './components/GameForm';
 import JugadorForm from './components/JugadorForm';
 import LobbyContainer from "./components/LobbyContainer";
+import GameList from "./components/GameList";
 import GameScreen from "./components/GameScreen";
 
 function App() {
@@ -15,7 +16,7 @@ function App() {
             <GameForm />
           </section>
           <section className="derecha">
-            {/* componente */}
+            <GameList />
           </section>
         </main>
       } />
