@@ -1,30 +1,42 @@
-import React, { useContext } from "react"; // <-- Importamos useContext
-import { GameStateContext } from "../context/GameStateContext"; // <-- Importamos el Contexto
+import React, { useContext } from "react"; 
+import { GameStateContext } from "../context/GameStateContext"; 
 import "./Controls.css";
 
 export default function Controls() {
-    const { discardOneCard, discardPileCards, TOTAL_CARDS } = useContext(GameStateContext);
+    const { 
+        discardSelectedCards, 
+        selectedCardIds,      
+        discardPileCards,     
+        deckCount, 
+        TOTAL_CARDS
+    } = useContext(GameStateContext);
 
-    const deckCount = TOTAL_CARDS - discardPileCards.length;
-    const isDeckEmpty = deckCount <= 0;
+    // Cantidad de cartas a descartar y reponer
+    const cardsToDraw = selectedCardIds.length;
+    const hasSelectedCards = cardsToDraw > 0;
 
+    // Contadores Proyectados (G2: Lo que pasará al presionar el botón)
+    const projectedDeckCount = deckCount - cardsToDraw;
+    const currentDiscardCount = discardPileCards.length;
+    const projectedDiscardCount = currentDiscardCount + cardsToDraw;
 
-    const handleDiscard = () => {
-        if (!isDeckEmpty) {
-            discardOneCard();
-        }
-    };
+    // Lógica para deshabilitar el botón
+    const canDrawCards = projectedDeckCount >= 0; 
+    const isDisabled = !hasSelectedCards || !canDrawCards;
+
+    // Lógica para el texto del botón
+    const buttonText = hasSelectedCards 
+        ? `Descartar ${cardsToDraw} Carta(s)` 
+        : 'Descartar';
 
     return (
         <div className="controls">
-            {/*<button className="btn primary">Finalizar turno</button>*/}
-            {/*<button className="btn medium">Saltar turno</button>*/}
             <button 
                 className="btn secondary"
-                onClick={handleDiscard} // <-- Conexión de la lógica
-                disabled={isDeckEmpty} // <-- Deshabilita si el mazo está vacío
+                onClick={discardSelectedCards}
+                disabled={isDisabled}
             >
-                {isDeckEmpty ? 'Mazo Vacío' : 'Descartar'}
+                {buttonText}
             </button>
         </div>
     );

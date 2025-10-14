@@ -21,7 +21,7 @@ export default function GameScreen({ players }) {
   // Lo inicializamos en 'false'. Se abrirá automáticamente más adelante
   const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
 
-  const { discardPileCards, TOTAL_CARDS } = useContext(GameStateContext);
+  const { discardPileCards, TOTAL_CARDS, localPlayerCards } = useContext(GameStateContext); 
 
   // ejemplo de render con jugadores — podés comentar jugadores con "//" de este array para probar:
   const samplePlayers = [
@@ -174,7 +174,7 @@ export default function GameScreen({ players }) {
         {/* Local: mano + secretos */}
         <div className="local-area" aria-label="Area local">
           <div className="hand-and-secrets">
-            <Hand cards={local.cards || []} />
+            <Hand cards={localPlayerCards || []} />
             <div
               className="local-secrets-horizontal"
               aria-label="Secretos del jugador"

@@ -1,18 +1,23 @@
-// Card.jsx (VERSIÓN NUEVA CON CONTEXTO Y ZOOM)
-
 import { useContext, useState, useRef } from "react";
 import { GameStateContext } from "../context/GameStateContext";
 import "./Card.css";
 
-const Card = ({ cardname, faceUp }) => {
+const Card = ({ 
+    cardname, 
+    faceUp, 
+    cardId, 
+    isSelectable = false,
+    isSelected = false,  
+    onSelect              
+}) => {
 
   const { cardPictures } = useContext(GameStateContext);
   const [isHovered, setIsHovered] = useState(false);
   const [size, setSize] = useState("small");
-  const cardRef = useRef(null); 
-
+  const cardRef = useRef(null);
+  const isFocusable = faceUp;
+  
   // --- Lógica de Zoom y Hover ---
-
   const handleKeyDown = (event) => {
     if (event.ctrlKey && isHovered) {
       setSize("large");
@@ -40,26 +45,48 @@ const Card = ({ cardname, faceUp }) => {
     setSize("small");
   };
 
-  const getDynamicClassName = (isHovered, size) => {
+  // Lógica de clases dinámicas
+  const getDynamicClassName = (isHovered, size, isSelected, isSelectable) => {
     let className = "cardframe";
+    
+    // Agrega la clase de SELECCIONADO si aplica
+    if (isSelected) {
+        className += " cardframe--selected"; 
+    }
+    // Agrega la clase de SELECCIONABLE si aplica
+    if (isSelectable) {
+        className += " cardframe--selectable"; 
+    }
+    
+    // Lógica de zoom y hover
     if (size === 'large') {
       className += " cardframe--zoom";
-      } else if (isHovered) {
+    } else if (isHovered && !isSelected) { 
+      // Si está seleccionada, el efecto de hover puede ser menos pronunciado
       className += " cardframe--hover";
-      }
+    }
     return className;
+  };
+
+  // Función para manejar el clic (Selección)
+  const handleClick = () => {
+    if (isSelectable && onSelect) {
+      onSelect();
+    }
   };
   
   // --- RENDERING ---
   return (
     <div 
-      className={getDynamicClassName(isHovered, size)}
+      // Pasar las props de selección al cálculo de clases
+      className={getDynamicClassName(isHovered, size, isSelected, isSelectable)}
       ref={cardRef}
-      tabIndex={0}
+      tabIndex={isFocusable ? 0 : -1} 
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
     >
       {faceUp 
         ? <img className="cardpic" src={cardPictures[cardname]} alt={cardname} />

@@ -1,59 +1,30 @@
-/* Card.css - UNIFICADO */
-
-/* -------------------------------------------------------------------
- * CONTENEDOR PRINCIPAL (cardframe)
- * Usamos los estilos y tamaños fijos del antiguo .carta (66x92px)
- * ------------------------------------------------------------------- */
+/* Contenedor principal */
 .cardframe {
-  /* Tamaño fijo unificado */
   width: 66px; 
   height: 92px; 
-  
-  /* Estilos visuales del antiguo .carta */
   border-radius: 8px;
-  background-color: var(--card, #fff); /* Usamos un fallback si var(--card) no existe */
+  background-color: var(--card, #fff);
   color: #0D0D0D;
   border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 6px 14px rgba(2, 6, 23, 0.25);
   cursor: pointer;
-
-  /* Propiedades de zoom/lógica */
   position: relative;
   transition: all 0.3s ease-in-out;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Eliminamos el height: 15%; width: 15%; anterior */
 }
 
-/* -------------------------------------------------------------------
- * ESTILO DE LA IMAGEN (cardpic)
- * Debe cubrir el 100% del frame para la carta descartada
- * ------------------------------------------------------------------- */
+/* Estilo de la imagen */
 .cardframe .cardpic {
-  /* La imagen cubre todo el contenedor de 66x92px */
   width: 100%;
   height: 100%;
-  border-radius: 8px; /* Para que la imagen respete el borde del frame */
-  object-fit: cover; /* Asegura que la imagen no se distorsione */
-  
-  /* Reset de estilos antiguos que ya no son necesarios */
+  border-radius: 8px; 
+  object-fit: cover;
   background: transparent; 
   border: none; 
   box-shadow: none; 
 }
-
-
-/* -------------------------------------------------------------------
- * DORSO DE LA CARTA (card_back)
- * Ya no necesitamos la clase .card__back, ya que Card.jsx renderiza la *imagen*
- * de "card_back" usando .cardpic.
- * ------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------
- * RESPUESTA INTERACTIVA (Zoom y Hover)
- * Se mantienen los estilos de la nueva versión para el zoom.
- * ------------------------------------------------------------------- */
 .cardframe--hover {
   z-index: 50;
   transform: translateY(-8px);
@@ -62,9 +33,15 @@
 
 .cardframe--zoom {
   position: relative;
-  /* Ajuste el translate para que el origen sea más centrado en la pantalla */
   transform: scale(3) translate(-30%, -30%); 
   transform-origin: center center; 
   z-index: 100;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* Estilo para cuando una carta está seleccionada */
+.cardframe--selected {
+    border: 3px solid #FFD700; 
+    box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.5);
+    transform: translateY(-5px);
 }
