@@ -9,22 +9,14 @@ export default function useGameSocket() {
   const token = localStorage.getItem("token");
   const partidaId = localStorage.getItem("partidaId");
 
-  const enviarAccion = (accion) => {
-    if (wsListo && socketRef.current) {
-      socketRef.current.send(JSON.stringify(accion));
-    } else {
-      console.warn("WebSocket no está listo para enviar acciones");
-    }
-  };
-
   useEffect(() => {
     const socket = new WebSocket(`ws://localhost:8000/ws/game/${partidaId}?token=${token}`);
     socketRef.current = socket; // guardamos la instancia
     console.log("Estado WebSocket:", socketRef.current?.readyState); // 1 = OPEN
 
     socket.onopen = () => {
-        console.log("WebSocket conectado");
-        setWsListo(true); // ahora está listo
+      console.log("WebSocket conectado");
+      setWsListo(true); // ahora está listo
     };
 
     socket.onmessage = (event) => {
@@ -35,10 +27,10 @@ export default function useGameSocket() {
         case "estado_actualizado":
           console.log("Evento recibido:", evento);
           if (payload) {
-              console.log("Payload recibido:", payload);
-              setEstadoDelJuego(payload);
+            console.log("Payload recibido:", payload);
+            setEstadoDelJuego(payload);
           } else {
-              console.warn("No se recibió estado_juego en el evento estado_actualizado");
+            console.warn("No se recibió estado_juego en el evento estado_actualizado");
           }
           break;
 
@@ -56,8 +48,8 @@ export default function useGameSocket() {
           break;
 
         case "iniciada":
-            // console.log("Partida ya iniciada:", payload);
-        //   setEstadoDelJuego(payload);
+          // console.log("Partida ya iniciada:", payload);
+          // setEstadoDelJuego(payload);
           console.log("Partida ya iniciada:", payload);
           if (payload) {
               setEstadoDelJuego(payload);
@@ -79,7 +71,6 @@ export default function useGameSocket() {
           // Podés mostrar un toast, actualizar UI, etc.
           break;
 
-
         case "error":
           alert(payload.mensaje || "Error desconocido");
           break;
@@ -90,16 +81,25 @@ export default function useGameSocket() {
     };
 
     socket.onclose = () => {
-        console.log("WebSocket cerrado");
-        setWsListo(false);
+      console.log("WebSocket cerrado");
+      setWsListo(false);
     };
-
+    
     return () => socket.close();
   }, [partidaId, token]);
 
-    return {
-      enviarAccion,
-      wsListo
+  //Handle
+  const enviarAccion = (accion) => {
+    if (wsListo && socketRef.current) {
+      socketRef.current.send(JSON.stringify(accion));
+    } else {
+      console.warn("WebSocket no está listo para enviar acciones");
     }
+  };
 
+  return {
+    enviarAccion,
+    wsListo
+  }
+  
 }

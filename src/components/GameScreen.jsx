@@ -18,7 +18,6 @@ export default function GameScreen() {
   const [mensajeFinal, setMensajeFinal] = useState("");
   const [selectedCardIds, setSelectedCardIds] = useState([]);
 
-
   const toggleCardSelection = (cardId) => {
     setSelectedCardIds((prev) =>
       prev.includes(cardId)
