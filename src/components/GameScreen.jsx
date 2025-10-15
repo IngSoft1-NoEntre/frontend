@@ -60,10 +60,29 @@ export default function GameScreen({ players }) {
             if (data.payload) {
               setGameState(data.payload);
 
-              // Actualizar orden de turnos del backend
-              if (data.payload.orden_turnos) {
-                setOrdenTurnos(data.payload.orden_turnos);
+              // FIXED: Update order from backend jugadores list
+              if (data.payload.jugadores) {
+                console.log(
+                  "[GameScreen] Setting orden from backend:",
+                  data.payload.jugadores
+                );
+                setOrdenTurnos(data.payload.jugadores);
               }
+            }
+            break;
+
+          case "jugador_conectado":
+            console.log("[GameScreen] Player connected:", data.payload);
+            if (data.payload?.jugador) {
+              setOrdenTurnos((prev) => {
+                const existing = prev.find(
+                  (p) => p.id === data.payload.jugador.id
+                );
+                if (!existing) {
+                  return [...prev, data.payload.jugador];
+                }
+                return prev;
+              });
             }
             break;
 
@@ -106,42 +125,46 @@ export default function GameScreen({ players }) {
     };
   }, [partidaId]);
 
-  // Fallback: orden mock para desarrollo
+  // FIXED: Only use mock data if NO real data after 3 seconds
   useEffect(() => {
-    if (ordenTurnos.length === 0 && !isConnected) {
-      // Mock del orden de turnos (simula respuesta del backend)
-      const mockOrden = [
-        {
-          id: 6,
-          nombre: "Lucas",
-          secretos: [true, true, true],
-          cards: [
-            { title: "not_so_fast" },
-            { title: "cards_off_the_table" },
-            { title: "hercule_poirot" },
-            { title: "miss_marple" },
-            { title: "cards_off_the_table" },
-            { title: "dead_card_folly" },
-          ],
-        },
-        { id: 1, nombre: "Juan", secretos: [false, false, false] },
-        { id: 3, nombre: "Veronica", secretos: [false, false, false] },
-        { id: 4, nombre: "Emanuel", secretos: [false, false, false] },
-        { id: 5, nombre: "Agustin", secretos: [false, false, false] },
-      ];
+    let mockTimeout;
 
-      setOrdenTurnos(mockOrden);
-      setLocalPlayerId(6); // Lucas es local
+    if (isConnected && ordenTurnos.length === 0) {
+      mockTimeout = setTimeout(() => {
+        console.log("[GameScreen] No real data received, using mock");
+        const mockOrden = [
+          {
+            id: 6,
+            nombre: "Lucas",
+            secretos: [true, true, true],
+            cards: [
+              { title: "not_so_fast" },
+              { title: "cards_off_the_table" },
+              { title: "hercule_poirot" },
+              { title: "miss_marple" },
+              { title: "cards_off_the_table" },
+              { title: "dead_card_folly" },
+            ],
+          },
+          { id: 1, nombre: "Juan", secretos: [false, false, false] },
+          { id: 3, nombre: "Veronica", secretos: [false, false, false] },
+          { id: 4, nombre: "Emanuel", secretos: [false, false, false] },
+          { id: 5, nombre: "Agustin", secretos: [false, false, false] },
+        ];
 
-      // Mock del turno inicial
-      setTimeout(() => {
+        setOrdenTurnos(mockOrden);
+        setLocalPlayerId(6);
         setGameState({
-          turno_actual_id: 6, // Empieza Lucas
+          turno_actual_id: 6,
           mazo_restante: 50,
         });
-      }, 500);
+      }, 3000); // Wait 3 seconds for real data
     }
-  }, [ordenTurnos.length, isConnected]);
+
+    return () => {
+      if (mockTimeout) clearTimeout(mockTimeout);
+    };
+  }, [isConnected, ordenTurnos.length]);
 
   // Simulación del estado del descarte
   const discardPileCards = gameState?.descarte || [
@@ -153,28 +176,43 @@ export default function GameScreen({ players }) {
   const discardCount = discardPileCards.length;
   const deckCount = gameState?.mazo_restante || TOTAL_CARDS - discardCount;
 
-  const handleAccionPrincipal = async () => {
+  // FIXED: Send proper backend actions
+  const handleJugar = async () => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
-          action: "draw_card",
-          from: "deck",
+          tipo: "jugar_carta", // or whatever the backend expects
+          jugador_id: localPlayerId,
         })
       );
     } else {
-      console.log("[MOCK] Acción Principal ejecutada");
+      console.log("[MOCK] Jugar ejecutado");
     }
   };
 
-  const handleAccionSecundaria = async () => {
+  const handleSaltarTurno = async () => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
-          action: "pass_turn",
+          tipo: "saltar_turno",
+          jugador_id: localPlayerId,
         })
       );
     } else {
-      console.log("[MOCK] Acción Secundaria ejecutada");
+      console.log("[MOCK] Saltar turno ejecutado");
+    }
+  };
+
+  const handleTerminarTurno = async () => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          tipo: "terminar_turno",
+          jugador_id: localPlayerId,
+        })
+      );
+    } else {
+      console.log("[MOCK] Terminar turno ejecutado");
     }
   };
 
@@ -194,7 +232,25 @@ export default function GameScreen({ players }) {
           zIndex: 1000,
         }}
       >
-        {isConnected ? "Conectado" : "Modo Mock"}
+        {isConnected ? "Conectado" : "Desconectado"}
+      </div>
+
+      {/* Debug info */}
+      <div
+        style={{
+          position: "fixed",
+          top: "50px",
+          right: "10px",
+          padding: "5px 10px",
+          background: "rgba(0,0,0,0.8)",
+          color: "white",
+          borderRadius: "5px",
+          fontSize: "10px",
+          zIndex: 1000,
+        }}
+      >
+        Jugadores: {ordenTurnos.length} | Turno:{" "}
+        {gameState?.turno_actual_id || "N/A"}
       </div>
 
       <div className="game-table">
@@ -212,8 +268,9 @@ export default function GameScreen({ players }) {
           ordenTurnos={ordenTurnos}
           turnoActualId={gameState?.turno_actual_id}
           localPlayerId={localPlayerId}
-          onAccionPrincipal={handleAccionPrincipal}
-          onAccionSecundaria={handleAccionSecundaria}
+          onJugar={handleJugar}
+          onSaltarTurno={handleSaltarTurno}
+          onTerminarTurno={handleTerminarTurno}
         />
       </div>
     </div>

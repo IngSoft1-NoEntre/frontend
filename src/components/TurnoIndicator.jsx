@@ -13,8 +13,9 @@ const TurnoIndicator = ({
   ordenTurnos = [],
   turnoActualId,
   localPlayerId,
-  onAccionPrincipal,
-  onAccionSecundaria,
+  onJugar,
+  onSaltarTurno,
+  onTerminarTurno,
 }) => {
   // Encontrar índice del jugador local en el orden
   const localIndex = ordenTurnos.findIndex((p) => p.id === localPlayerId);
@@ -48,28 +49,23 @@ const TurnoIndicator = ({
 
   switch (total) {
     case 2:
-      // Local abajo, el otro arriba
       top = [others[0]];
       break;
     case 3:
-      // Local abajo, uno a la izquierda, uno a la derecha
       left = [others[0]];
       right = [others[1]];
       break;
     case 4:
-      // Local abajo, dos a los lados, uno arriba
       left = [others[0]];
       right = [others[1]];
       top = [others[2]];
       break;
     case 5:
-      // Local abajo, dos arriba, dos a los lados
       left = [others[0]];
       right = [others[1]];
       top = [others[2], others[3]];
       break;
     case 6:
-      // Local abajo, dos en cada columna, uno arriba
       left = [others[0], others[1]];
       right = [others[2], others[3]];
       top = [others[4]];
@@ -143,7 +139,7 @@ const TurnoIndicator = ({
         </div>
       </div>
 
-      {/* Indicador de turno compacto (esquina inferior derecha) */}
+      {/* Indicador de turno compacto con 3 botones */}
       <div className={`turno-indicator-compact ${esMiTurno ? "mi-turno" : ""}`}>
         <div className="turno-mensaje-compact">
           {esMiTurno ? (
@@ -161,20 +157,31 @@ const TurnoIndicator = ({
           )}
         </div>
 
+        {/* 3 botones de acción */}
         <div className="turno-botones-compact">
           <button
             className="btn-turno btn-principal-turno"
             disabled={!esMiTurno}
-            onClick={onAccionPrincipal}
+            onClick={onJugar}
+            title="Jugar carta"
           >
             Jugar
           </button>
           <button
             className="btn-turno btn-secundaria-turno"
             disabled={!esMiTurno}
-            onClick={onAccionSecundaria}
+            onClick={onSaltarTurno}
+            title="Saltar turno"
           >
-            Pasar
+            Saltar
+          </button>
+          <button
+            className="btn-turno btn-terciaria-turno"
+            disabled={!esMiTurno}
+            onClick={onTerminarTurno}
+            title="Terminar turno"
+          >
+            Terminar
           </button>
         </div>
       </div>

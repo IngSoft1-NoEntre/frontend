@@ -50,11 +50,13 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   z-index: 100;
   transition: all 0.3s ease;
+  animation: slideInFromRight 0.4s ease-out;
 }
 
 .turno-indicator-compact.mi-turno {
   border-color: rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  /* Removed golden glow animation */
 }
 
 /* Mensaje de turno */
@@ -93,13 +95,13 @@
 }
 
 .turno-indicator-compact.mi-turno .turno-texto-compact {
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.95); /* Changed from golden #d4af37 to white */
 }
 
 /* Botones de acción */
 .turno-botones-compact {
   display: flex;
-  gap: 7px;
+  gap: 5px; /* Reduced gap for 3 buttons */
 }
 
 .btn-turno {
@@ -118,25 +120,37 @@
 }
 
 .btn-principal-turno {
-  background: linear-gradient(135deg, #666, #888);
-  color: #ffffff;
+  background: linear-gradient(135deg, #666, #888); /* Changed from golden gradient */
+  color: #ffffff; /* Changed from #0d0d0d */
 }
 
 .btn-principal-turno:hover:not(:disabled) {
-  background: linear-gradient(135deg, #777, #999);
+  background: linear-gradient(135deg, #777, #999); /* Changed from golden hover */
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Removed golden shadow */
 }
 
 .btn-secundaria-turno {
   background: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.3); /* Changed from golden border */
+  color: rgba(255, 255, 255, 0.8); /* Changed from golden color */
 }
 
 .btn-secundaria-turno:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1); /* Changed from golden background */
+  border-color: rgba(255, 255, 255, 0.5); /* Changed from golden border */
+  transform: translateY(-2px);
+}
+
+.btn-terciaria-turno {
+  background: transparent;
+  border: 2px solid rgba(255, 165, 0, 0.4); /* Orange border */
+  color: rgba(255, 165, 0, 0.8); /* Orange text */
+}
+
+.btn-terciaria-turno:hover:not(:disabled) {
+  background: rgba(255, 165, 0, 0.1); /* Orange background */
+  border-color: rgba(255, 165, 0, 0.6); /* Brighter orange border */
   transform: translateY(-2px);
 }
 
@@ -163,10 +177,6 @@
   }
 }
 
-.turno-indicator-compact {
-  animation: slideInFromRight 0.4s ease-out;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .turno-indicator-compact {
@@ -182,340 +192,17 @@
 
   .turno-botones-compact {
     flex-direction: column;
+    gap: 3px;
   }
   
   .btn-turno {
-    font-size: 0.65rem;
-    padding: 5px 9px;
+    font-size: 0.6rem; /* Smaller text for 3 buttons */
+    padding: 4px 8px;
   }
   
   .corona-turno {
     font-size: 1rem;
     top: -6px;
     right: -6px;
-  }
-}
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.08),
-    rgba(0, 0, 0, 0.09)
-  );
-  .turno-indicator-compact {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 12px 16px;
-  min-width: 200px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  transition: all 0.3s ease;
-}
-
-.turno-indicator-compact.mi-turno {
-  border-color: rgba(212, 175, 55, 0.6);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-  animation: pulseGlowCompact 2s ease-in-out infinite;
-}
-
-@keyframes pulseGlowCompact {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
-  }
-}
-
-/* Mensaje de turno */
-.turno-mensaje-compact {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.turno-icono-compact {
-  font-size: 1.2rem;
-  flex-shrink: 0;
-}
-
-.turno-indicator-compact.mi-turno .turno-icono-compact {
-  animation: iconPulseCompact 1.5s ease-in-out infinite;
-}
-
-@keyframes iconPulseCompact {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.15);
-  }
-}
-
-.turno-texto-compact {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-
-.turno-indicator-compact.mi-turno .turno-texto-compact {
-  color: #d4af37;
-}
-
-/* Botones de acción */
-.turno-botones-compact {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-turno {
-  flex: 1;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  font-family: 'Lato', sans-serif;
-  font-weight: 600;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-
-.btn-principal-turno {
-  background: linear-gradient(135deg, #d4af37, #c9a553);
-  color: #0d0d0d;
-}
-
-.btn-principal-turno:hover:not(:disabled) {
-  background: linear-gradient(135deg, #e6c76f, #d4af37);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(212, 175, 55, 0.4);
-}
-
-.btn-secundaria-turno {
-  background: transparent;
-  border: 2px solid rgba(212, 175, 55, 0.5);
-  color: #d4af37;
-}
-
-.btn-secundaria-turno:hover:not(:disabled) {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: #d4af37;
-  transform: translateY(-2px);
-}
-
-.btn-turno:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-  filter: grayscale(0.5);
-}
-
-.btn-turno:disabled:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-/* Animación de entrada */
-@keyframes slideInFromRight {
-  from {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.turno-indicator-compact {
-  animation: slideInFromRight 0.4s ease-out;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .turno-indicator-compact {
-    bottom: 10px;
-    right: 10px;
-    min-width: 180px;
-    padding: 10px 12px;
-  }
-
-  .turno-mensaje-compact {
-    font-size: 0.85rem;
-  }
-
-  .turno-botones-compact {
-    flex-direction: column;
-  }
-  
-  .btn-turno {
-    font-size: 0.75rem;
-    padding: 6px 10px;
-  }
-}
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.08),
-    rgba(0, 0, 0, 0.09)
-  );
-  .turno-indicator-compact {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 12px 16px;
-  min-width: 200px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  transition: all 0.3s ease;
-}
-
-.turno-indicator-compact.mi-turno {
-  border-color: rgba(212, 175, 55, 0.6);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-  animation: pulseGlowCompact 2s ease-in-out infinite;
-}
-
-@keyframes pulseGlowCompact {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
-  }
-}
-
-/* Mensaje de turno */
-.turno-mensaje-compact {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.turno-icono-compact {
-  font-size: 1.2rem;
-  flex-shrink: 0;
-}
-
-.turno-indicator-compact.mi-turno .turno-icono-compact {
-  animation: iconPulseCompact 1.5s ease-in-out infinite;
-}
-
-@keyframes iconPulseCompact {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.15);
-  }
-}
-
-.turno-texto-compact {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-
-.turno-indicator-compact.mi-turno .turno-texto-compact {
-  color: #d4af37;
-}
-
-/* Botones de acción */
-.turno-botones-compact {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-turno {
-  flex: 1;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  font-family: 'Lato', sans-serif;
-  font-weight: 600;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-
-.btn-principal-turno {
-  background: linear-gradient(135deg, #d4af37, #c9a553);
-  color: #0d0d0d;
-}
-
-.btn-principal-turno:hover:not(:disabled) {
-  background: linear-gradient(135deg, #e6c76f, #d4af37);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(212, 175, 55, 0.4);
-}
-
-.btn-secundaria-turno {
-  background: transparent;
-  border: 2px solid rgba(212, 175, 55, 0.5);
-  color: #d4af37;
-}
-
-.btn-secundaria-turno:hover:not(:disabled) {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: #d4af37;
-  transform: translateY(-2px);
-}
-
-.btn-turno:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-  filter: grayscale(0.5);
-}
-
-.btn-turno:disabled:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-/* Animación de entrada */
-@keyframes slideInFromRight {
-  from {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.turno-indicator-compact {
-  animation: slideInFromRight 0.4s ease-out;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .turno-indicator-compact {
-    bottom: 10px;
-    right: 10px;
-    min-width: 180px;
-    padding: 10px 12px;
-  }
-
-  .turno-mensaje-compact {
-    font-size: 0.85rem;
-  }
-
-  .turno-botones-compact {
-    flex-direction: column;
-  }
-  
-  .btn-turno {
-    font-size: 0.75rem;
-    padding: 6px 10px;
   }
 }
