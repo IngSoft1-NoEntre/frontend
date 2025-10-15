@@ -24,10 +24,11 @@ const GameForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const nombre = formData.nombre;
     const min = parseInt(formData.min_jugadores, 10);
     const max = parseInt(formData.max_jugadores, 10);
 
-    // Validaciones
+    // Validaciones antes de enviar
     if (min < 2) {
       alert("La cantidad mínima de jugadores debe ser al menos 2.");
       return;
@@ -38,6 +39,10 @@ const GameForm = () => {
     }
     if (min > max) {
       alert("La cantidad mínima no puede ser mayor que la máxima.");
+      return;
+    }
+    if (nombre.length > 29) {
+      alert("El nombre no puede tener más de 29 caracteres.");
       return;
     }
 
@@ -52,7 +57,7 @@ const GameForm = () => {
         body: JSON.stringify(formData),               // Convierte el objeto a JSON
       });
 
-      // Si la respuesta no es exitosa, lanza error
+      //Si la respuesta no es exitosa, lanza error
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.detail || "Error inesperado");
@@ -71,6 +76,7 @@ const GameForm = () => {
     }
   };
 
+  
   return (
     <div className="card">
       <h2>Crea una partida</h2>

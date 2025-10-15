@@ -4,6 +4,7 @@ import GameForm from "./components/GameForm";
 import JugadorForm from "./components/JugadorForm";
 import LobbyContainer from "./components/LobbyContainer";
 import GameList from "./components/GameList";
+import GameScreen from "./components/GameScreen";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         }
       />
       <Route path="/lobby/:partidaId" element={<LobbyContainer />} />
+      <Route path="/juego/:partidaId" element={<GameScreen />} />
     </Routes>
   );
 }
