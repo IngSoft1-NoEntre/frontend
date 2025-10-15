@@ -19,6 +19,7 @@ export default function useGameSocket() {
       setWsListo(true); // ahora está listo
     };
 
+    //eventos que recibo del backend
     socket.onmessage = (event) => {
       console.log("Mensaje crudo recibido:", event.data);
       const { evento, payload } = JSON.parse(event.data);
@@ -88,7 +89,7 @@ export default function useGameSocket() {
     return () => socket.close();
   }, [partidaId, token]);
 
-  //Handle
+  //eventos que mando al backend
   const enviarAccion = (accion) => {
     if (wsListo && socketRef.current) {
       socketRef.current.send(JSON.stringify(accion));
@@ -101,5 +102,5 @@ export default function useGameSocket() {
     enviarAccion,
     wsListo
   }
-  
+
 }
