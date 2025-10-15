@@ -4,32 +4,20 @@ import { GameStateContext } from "../context/GameStateContext";
 export default function useGameSocket() {
   const socketRef = useRef(null); // referencia persistente
   const [wsListo, setWsListo] = useState(false);
+  const { setEstadoDelJuego } = useContext(GameStateContext);
 
   const token = localStorage.getItem("token");
   const partidaId = localStorage.getItem("partidaId");
 
+  const enviarAccion = (accion) => {
+    if (wsListo && socketRef.current) {
+      socketRef.current.send(JSON.stringify(accion));
+    } else {
+      console.warn("WebSocket no está listo para enviar acciones");
+    }
+  };
 
-    const [estadoDelJuego, setEstadoDelJuego] = useState({
-      turno_actual_id: null,
-      mazo_restante: 0,
-      descarte: [],
-      mano: [],
-      secretos: [],
-      estado_draft: {},
-      acciones_disponibles: [],
-      jugador_id: null, // si lo necesitás para validar turno
-    });
-
-
-    const enviarAccion = (accion) => {
-      if (wsListo && socketRef.current) {
-        socketRef.current.send(JSON.stringify(accion));
-      } else {
-        console.warn("WebSocket no está listo para enviar acciones");
-      }
-    };
-
-    useEffect(() => {
+  useEffect(() => {
     const socket = new WebSocket(`ws://localhost:8000/ws/game/${partidaId}?token=${token}`);
     socketRef.current = socket; // guardamos la instancia
     console.log("Estado WebSocket:", socketRef.current?.readyState); // 1 = OPEN
@@ -111,7 +99,6 @@ export default function useGameSocket() {
 
     return {
       enviarAccion,
-      estadoDelJuego,
       wsListo
     }
 

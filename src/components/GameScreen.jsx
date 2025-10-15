@@ -1,5 +1,5 @@
 import React, { useContext,useEffect, useState, useRef} from "react";
-// import { GameStateContext } from "../context/GameStateContext";
+import { GameStateContext } from "../context/GameStateContext";
 import "./GameScreen.css";
 import { useParams, useNavigate } from "react-router-dom";
 import Player from "./Player";
@@ -12,16 +12,12 @@ import useGameSocket from "./useGameSocket";
 
 export default function GameScreen() {
   const { partidaId } = useParams();
-  
-  
-  const  { enviarAccion, estadoDelJuego, wsListo } = useGameSocket()
-
+  const { estadoDelJuego } = useContext(GameStateContext);
+  const { enviarAccion, wsListo } = useGameSocket()
   const [ganadorId, setGanadorId] = useState(null);
   const [mensajeFinal, setMensajeFinal] = useState("");
-
-
-
   const [selectedCardIds, setSelectedCardIds] = useState([]);
+
 
   const toggleCardSelection = (cardId) => {
     setSelectedCardIds((prev) =>
@@ -30,9 +26,6 @@ export default function GameScreen() {
         : [...prev, cardId]
     );
   };
-
-
-  
 
   return (
     <div className="game-screen">

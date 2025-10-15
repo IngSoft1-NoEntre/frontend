@@ -56,6 +56,20 @@ const GameStateProvider = ({ children }) => {
         { id: 106, title: "dead_card_folly" },
     ]);
   const [selectedCardIds, setSelectedCardIds] = useState([]); // Estado de selección
+ 
+  //Estado actualizado de todo el juego
+  const [estadoDelJuego, setEstadoDelJuego] = useState({
+    turno_actual_id: null,
+    mazo_restante: 0,
+    descarte: [],
+    mano: [],
+    secretos: [],
+    estado_draft: {},
+    acciones_disponibles: [],
+    jugador_id: null, // si lo necesitás para validar turno
+  });
+
+
 
   // esto es un dict para consultar que imagen tiene que mostrar cada carta
   // formas de hacerlo:
@@ -180,7 +194,9 @@ const GameStateProvider = ({ children }) => {
     toggleCardSelection,   
     selectedCardIds,       
     TOTAL_CARDS,
-    deckCount
+    deckCount,
+    estadoDelJuego,
+    setEstadoDelJuego
   };
 
   return (
