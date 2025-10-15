@@ -1,0 +1,31 @@
+.discard-pile {
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.discard-pile-graphic {
+  font-size: 18px;
+  opacity: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.discard-pile-empty-slot {
+  width: 66px;
+  height: 92px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.3); /* Indicador visual de espacio */
+  background: rgba(234, 179, 8, 0.04); /* Fondo sutil */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Opcional: añadir un texto o icono aquí */
+}
+.discard-pile-count {
+  margin-top: 6px;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 12px;
+}
