@@ -1,42 +1,60 @@
-import React, { useContext } from "react";
+import React from "react";
 import "./Hand.css";
 import Card from "./Card";
-import { GameStateContext } from "../context/GameStateContext";
 
-/** muestra las 6 cartas del jugador local (faceUp) */
-export default function Hand({ cards = [] }) {
-  // Obtener funciones y estados del contexto
-  const { toggleCardSelection, selectedCardIds } = useContext(GameStateContext); 
-  
-  // Lógica de relleno de mano
+/** Muestra las 6 cartas del jugador local (faceUp) */
+export default function Hand({ partidaId, estado, enviarAccion, selectedCardIds, toggleCardSelection }) {
+  const esMiTurno = estado.turno_actual_id === estado.jugador_id;
 
-  // Crear cartas de relleno con IDs ÚNICOS y temporales
-  const cardsToFill = Array(Math.max(0, 6 - cards.length)).fill(0).map((_, index) => ({ 
-    title: "?",
-    id: `filler-${index}`
-  }));
+  const handleDescartar = (cartasIds) => {
+    enviarAccion({ tipo: "descartar_carta", cartas: cartasIds });
+  };
 
-  // Unir cartas reales y de relleno
-  const view = cards.concat(cardsToFill).slice(0, 6); 
-  
+  const handleSaltarTurno = () => {
+    enviarAccion({ tipo: "saltar_turno" });
+  };
+
+  const handleTerminarTurno = () => {
+    enviarAccion({ tipo: "terminar_turno" });
+  };
+
   return (
-    <div className="hand" role="region" aria-label="Mano del jugador">
-      {view.map((c,i)=> {
-        const isFiller = c.id && c.id.toString().startsWith('filler');
-        const cardId = c.id;
+    <div className="hand-container">
+      {estado.mano?.map((carta, i) => {
+        const cardId = carta.id;
+        const isFiller = false; // todas son reales en esta vista
 
         return (
           <Card 
             key={cardId || i}
-            cardname={c.title} 
+            cardname={carta.nombre}
             faceUp={true}
             cardId={cardId}
-            isSelectable={!isFiller} 
-            isSelected={cardId && selectedCardIds.includes(cardId)}
-            onSelect={!isFiller ? () => toggleCardSelection(cardId) : undefined}
+            isSelectable={esMiTurno}
+            isSelected={selectedCardIds.includes(cardId)}
+            onSelect={esMiTurno ? () => toggleCardSelection(cardId) : undefined}
           />
         );
       })}
+
+      {esMiTurno && (
+        <div className="acciones-turno">
+          <button onClick={handleSaltarTurno}>Saltar turno</button>
+          <button onClick={handleTerminarTurno}>Terminar turno</button>
+          <button 
+            onClick={() => {
+              if (selectedCardIds.length === 0) {
+                alert("Seleccioná al menos una carta para descartar.");
+                return;
+              }
+              handleDescartar(selectedCardIds);
+            }}
+          >
+            Descartar
+          </button>
+
+        </div>
+      )}
     </div>
   );
 }

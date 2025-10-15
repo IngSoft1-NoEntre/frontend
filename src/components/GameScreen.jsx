@@ -1,214 +1,156 @@
-import React, { useContext, useState } from "react";
-import { GameStateContext } from "../context/GameStateContext";
+import React, { useContext,useEffect, useState, useRef} from "react";
+// import { GameStateContext } from "../context/GameStateContext";
 import "./GameScreen.css";
+import { useParams, useNavigate } from "react-router-dom";
+
 import Player from "./Player";
 import Deck from "./Deck";
 import Hand from "./Hand";
 import Secret from "./Secret";
 import Controls from "./Controls";
 import FinishGameModal from "./FinishGameModal";
-import SecretModal from "./SecretModal";
 
-/**
- * GameScreen dinámico: acepta `players`
- * Filtra entradas vacías / comentadas y distribuye la UI según la cantidad:
- * 2 -> local + 1 arriba
- * 3 -> local + 1 izquierda + 1 derecha
- * 4 -> local + 1 izquierda + 1 derecha + 1 arriba
- * 5 -> local + 1 left + 1 right + 2 arriba
- * 6 -> local + 2 left + 2 right + 1 arriba
- */
-export default function GameScreen({ players }) {
-  // Lo inicializamos en 'false'. Se abrirá automáticamente más adelante
-  const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
+export default function GameScreen() {
+  const { partidaId } = useParams();
+  const token = localStorage.getItem("token");
+  const socketRef = useRef(null); // referencia persistente
+  const [wsListo, setWsListo] = useState(false);
 
-  const { discardPileCards, TOTAL_CARDS, localPlayerCards } = useContext(GameStateContext); 
+  const [estadoDelJuego, setEstadoDelJuego] = useState({
+    turno_actual_id: null,
+    mazo_restante: 0,
+    descarte: [],
+    mano: [],
+    secretos: [],
+    estado_draft: {},
+    acciones_disponibles: [],
+    jugador_id: null, // si lo necesitás para validar turno
+  });
 
-  // ejemplo de render con jugadores — podés comentar jugadores con "//" de este array para probar:
-  const samplePlayers = [
-    { id: 1, nombre: "Juan", secretos: [false, false, false], isLocal: false },
-    //{ id: 2, nombre: "Jere", secretos: [false, false, false], isLocal: false },
-    {
-      id: 3,
-      nombre: "Veronica",
-      secretos: [false, false, false],
-      isLocal: false,
-    }, // ejemplo comentado
-    {
-      id: 4,
-      nombre: "Emanuel",
-      secretos: [false, false, false],
-      isLocal: false,
-    },
-    {
-      id: 5,
-      nombre: "Agustin",
-      secretos: [false, false, false],
-      isLocal: false,
-    },
-    {
-      id: 6,
-      nombre: "Lucas",
-      secretos: [true, true, true],
-      isLocal: true,
-      cards: [
-        // Usar las claves exactas del diccionario
-        { title: "not_so_fast" },
-        { title: "cards_off_the_table" }, // Asumiendo que "Event" es "cards_off_the_table"
-        { title: "hercule_poirot" }, // Asumiendo que "Detective" es "hercule_poirot"
-        { title: "miss_marple" }, // Usamos otro detective
-        { title: "cards_off_the_table" },
-        { title: "dead_card_folly" },
-      ],
-    },
-  ];
+  const [ganadorId, setGanadorId] = useState(null);
+  const [mensajeFinal, setMensajeFinal] = useState("");
 
-  // Cálculo de los contadores:
-  const discardCount = discardPileCards.length;
-  // El mazo regular es el Total menos las descartadas.
-  const deckCount = TOTAL_CARDS - discardCount;
-  //condicion de fin de juego
-  const isDeckEmpty = deckCount <= 0;
-
-  // Si el mazo está vacío Y el modal no se ha abierto, lo abrimos.
-  // Usaremos un efecto para manejar esta apertura automática:
-  React.useEffect(() => {
-    if (isDeckEmpty && !isGameOverModalOpen) {
-      setIsGameOverModalOpen(true);
+  const enviarAccion = (accion) => {
+    if (wsListo && socketRef.current) {
+      socketRef.current.send(JSON.stringify(accion));
+    } else {
+      console.warn("WebSocket no está listo para enviar acciones");
     }
-  }, [isDeckEmpty, isGameOverModalOpen]);
+  };
 
-  // La función para cerrar el modal (usada en el botón "Volver a jugar" del modal)
-  // Aunque "Volver a jugar" navega, tener esta función de cierre es buena práctica.
-  const closeGameOverModal = () => setIsGameOverModalOpen(false);
-  // estado modal
-  const [openSecret, setOpenSecret] = useState(null);
-  const openSecretModal = (data) => { if (data?.revealed) setOpenSecret(data); };
-  const closeSecretModal = () => setOpenSecret(null);
+  const [selectedCardIds, setSelectedCardIds] = useState([]);
 
-  // Usa players pasados como prop si existen, si no samplePlayers
-  const rawList = Array.isArray(players) ? players : samplePlayers;
-  const list = rawList.filter(Boolean); // elimina `undefined`, `null`, etc.
+  const toggleCardSelection = (cardId) => {
+    setSelectedCardIds((prev) =>
+      prev.includes(cardId)
+        ? prev.filter((id) => id !== cardId)
+        : [...prev, cardId]
+    );
+  };
 
-  // Encontrar jugador local (isLocal: true). Si no hay ninguno, usamos el último como local.
-  let local = list.find((p) => p.isLocal);
-  let others = list.filter((p) => !p.isLocal);
 
-  if (!local) {
-    // tomar el último como local por defecto
-    local = others.length ? others[others.length - 1] : list[list.length - 1];
-    others = list.filter((p) => p.id !== local.id);
-  }
+  useEffect(() => {
+    const socket = new WebSocket(`ws://localhost:8000/ws/game/${partidaId}?token=${token}`);
+    socketRef.current = socket; // guardamos la instancia
+    console.log("Estado WebSocket:", socketRef.current?.readyState); // 1 = OPEN
 
-  // distribución según cantidad total
-  const total = 1 + others.length; // local + otros
-  let left = [],
-    right = [],
-    top = [];
+    socket.onopen = () => {
+        console.log("WebSocket conectado");
+        setWsListo(true); // ahora está listo
+    };
 
-  switch (total) {
-    case 2:
-      // 1 arriba, local abajo
-      top = [others[0]];
-      break;
-    case 3:
-      // left:1, right:1
-      left = [others[0]];
-      right = [others[1]];
-      break;
-    case 4:
-      // left:1, right:1, top:1
-      left = [others[0]];
-      right = [others[1]];
-      top = [others[2]];
-      break;
-    case 5:
-      // top:2, left:1, right:1
-      top = [others[0], others[1]];
-      left = [others[2]];
-      right = [others[3]];
-      break;
-    case 6:
-    default:
-      // left:2, right:2, top:1
-      left = [others[0], others[1]].filter(Boolean);
-      right = [others[2], others[3]].filter(Boolean);
-      top = [others[4]].filter(Boolean);
-      break;
-  }
+    socket.onmessage = (event) => {
+      console.log("Mensaje crudo recibido:", event.data);
+      const { evento, payload } = JSON.parse(event.data);
+      console.log("Evento extraído:", evento);
+      switch (evento) {
+        case "estado_actualizado":
+          console.log("Evento recibido:", evento);
+          if (payload) {
+              console.log("Payload recibido:", payload);
+              setEstadoDelJuego(payload);
+          } else {
+              console.warn("No se recibió estado_juego en el evento estado_actualizado");
+          }
+          break;
 
-  // rutas de imagen (si están en public/assets)
-  const back = "/assets/img/05-secret_back.png";
-  const front  = "/assets/img/06-secret_front.png";
+        case "fin_partida":
+          setGanadorId(payload.ganador_id || null);
+          setMensajeFinal(payload.mensaje || "La partida ha terminado.");
+          break;
+
+        case "cartas_descartadas":
+          console.log("Cartas descartadas:", payload);
+          break;
+
+        case "conectado":
+          console.log("Jugador conectado al juego:", payload);
+          break;
+
+        case "iniciada":
+            // console.log("Partida ya iniciada:", payload);
+        //   setEstadoDelJuego(payload);
+          console.log("Partida ya iniciada:", payload);
+          if (payload) {
+              setEstadoDelJuego(payload);
+          } else {
+              console.warn("No se recibió estado_juego en el evento iniciada");
+          }
+          break;
+
+        case "jugador_conectado":
+          console.log("Nuevo jugador conectado:", payload);
+          break;
+
+        case "evento_jugado":
+          console.log("Evento jugado:", payload);
+          break;
+
+        case "accion_confirmada":
+          console.log("Acción confirmada:", payload.mensaje);
+          // Podés mostrar un toast, actualizar UI, etc.
+          break;
+
+
+        case "error":
+          alert(payload.mensaje || "Error desconocido");
+          break;
+
+        default:
+          console.warn("Evento desconocido:", evento);
+      }
+    };
+
+    socket.onclose = () => {
+        console.log("WebSocket cerrado");
+        setWsListo(false);
+    };
+
+    return () => socket.close();
+  }, [partidaId, token]);
 
   return (
-    <div className="game-root">
-      <div className="game-table">
-        {/* columna izquierda */}
-        <div
-          className="players-col players-left"
-          aria-hidden={left.length === 0}
-        >
-          {left.map((p) => (
-            <Player key={p.id} player={p} onOpenSecret={openSecretModal}/>
-          ))}
-        </div>
+    <div className="game-screen">
+      {/* Muestra el mazo y el descarte */}
+      <Deck 
+        discardCards={estadoDelJuego.descarte}
+        deckCount={estadoDelJuego.mazo_restante}
+        totalCards={
+          estadoDelJuego.mazo_restante 
+        } // o estadoDelJuego.total_mazo si lo tenés
+      />
 
-        {/* columna derecha */}
-        <div
-          className="players-col players-right"
-          aria-hidden={right.length === 0}
-        >
-          {right.map((p) => (
-            <Player key={p.id} player={p} onOpenSecret={openSecretModal}/>
-          ))}
-        </div>
-
-        {/* fila superior (puede tener 0,1 o 2 jugadores) */}
-        <div className="players-top-row">
-          {top.map((p) => (
-            <Player key={p.id} player={p}onOpenSecret={openSecretModal}/>
-          ))}
-        </div>
-
-        {/* Centro: mazos */}
-        <div className="center-area">
-          <Deck
-            discardCards={discardPileCards}
-            deckCount={deckCount}
-            totalCards={TOTAL_CARDS}
-          />
-        </div>
-
-        {/* Local: mano + secretos */}
-        <div className="local-area" aria-label="Area local">
-          <div className="hand-and-secrets">
-            <Hand cards={localPlayerCards || []} />
-            <div className="local-secrets-horizontal" aria-label="Secretos del jugador">
-              {(local.secretos || []).slice(0, 3).map((s, i) => (
-                <Secret
-                  key={i}
-                  revealed={Boolean(s)}
-                  isLocal={true}
-                  data={{
-                    title: `Secreto ${i + 1}`,
-                    frontImage: front,
-                    backImage: back,
-                  }}
-                  onOpen={(d) => openSecretModal({ ...d, revealed: true })}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-        <SecretModal item={openSecret} onClose={closeSecretModal} />
-        <Controls />
-      </div>
-      {isGameOverModalOpen && (
-        <FinishGameModal
-          onClose={closeGameOverModal}
-        />
-      )}
+      {/* Mano del jugador */}
+      <Hand
+        partidaId={partidaId}
+        estado={estadoDelJuego}
+        ganadorId={ganadorId}
+        mensajeFinal={mensajeFinal}
+        enviarAccion={enviarAccion}
+        wsListo={wsListo}
+        selectedCardIds={selectedCardIds}
+        toggleCardSelection={toggleCardSelection}
+      />
     </div>
   );
 }

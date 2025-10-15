@@ -38,6 +38,7 @@ export default function Controls() {
             >
                 {buttonText}
             </button>
+            <button className="btn medium">Saltar turno</button>
         </div>
     );
 }
