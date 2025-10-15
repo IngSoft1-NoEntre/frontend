@@ -17,7 +17,7 @@ const GameForm = () => {
   // Maneja cambios en los inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({...formData, [name]: value});
+    setFormData({ ...formData, [name]: value });
   };
 
   // Maneja el submit
@@ -51,10 +51,10 @@ const GameForm = () => {
       const res = await fetch("http://localhost:8000/partidas", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",         // Indica que se envía JSON
-          "Authorization": `Bearer ${token}`,         // Token para autenticación
+          "Content-Type": "application/json", // Indica que se envía JSON
+          Authorization: `Bearer ${token}`, // Token para autenticación
         },
-        body: JSON.stringify(formData),               // Convierte el objeto a JSON
+        body: JSON.stringify(formData), // Convierte el objeto a JSON
       });
 
       //Si la respuesta no es exitosa, lanza error
@@ -62,7 +62,7 @@ const GameForm = () => {
         const errorData = await res.json();
         throw new Error(errorData.detail || "Error inesperado");
       }
-      
+
       // Extrae el ID de la partida creada desde la respuesta
       const data = await res.json();
       const partidaId = data.id;
@@ -76,7 +76,6 @@ const GameForm = () => {
     }
   };
 
-  
   return (
     <div className="card">
       <h2>Crea una partida</h2>
@@ -105,7 +104,9 @@ const GameForm = () => {
           onChange={handleChange}
           required
         />
-        <button className="btn-cta" type="submit">Crear</button>
+        <button className="btn-cta" type="submit">
+          Crear
+        </button>
       </form>
     </div>
   );
