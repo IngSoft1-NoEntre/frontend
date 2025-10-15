@@ -1,88 +1,184 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./TurnoIndicator.css";
-import {
-  calculateTurnOrder,
-  getFirstPlayer,
-  getNextPlayer,
-} from "../utils/turnOrder";
+import Player from "./Player";
+import Hand from "./Hand";
+import Secret from "./Secret";
 
-const TurnoIndicator = ({ players = [] }) => {
-  const [currentTurnId, setCurrentTurnId] = useState(null);
-  const myPlayerId = 6; // Hard-code Lucas como jugador
+/**
+ * TurnoIndicator - Orquestador visual de la mesa
+ * Recibe el orden de turnos del backend y distribuye a los jugadores
+ * en la mesa según la cantidad de jugadores
+ */
+const TurnoIndicator = ({
+  ordenTurnos = [],
+  turnoActualId,
+  localPlayerId,
+  onAccionPrincipal,
+  onAccionSecundaria,
+}) => {
+  // Encontrar índice del jugador local en el orden
+  const localIndex = ordenTurnos.findIndex((p) => p.id === localPlayerId);
 
-  // Inicializar el turno al primer jugador al cargar los jugadores
-  useEffect(() => {
-    if (players.length > 0 && !currentTurnId) {
-      const firstPlayer = getFirstPlayer(players);
-      if (firstPlayer) {
-        setCurrentTurnId(firstPlayer.id);
-      }
-    }
-  }, [players, currentTurnId]);
-
-  const currentPlayer = players.find((p) => p.id === currentTurnId);
-  const isMyTurn = currentTurnId === myPlayerId;
-
-  const advanceTurn = () => {
-    const nextPlayer = getNextPlayer(players, currentTurnId);
-    if (nextPlayer) {
-      setCurrentTurnId(nextPlayer.id);
-    }
-  };
-
-  const handleDrawCard = () => {
-    if (!isMyTurn) return;
-    console.log("Drawing card...");
-    // Por ahora solo avanzamos el turno
-    advanceTurn();
-  };
-
-  const handlePassTurn = () => {
-    if (!isMyTurn) return;
-    console.log("Passing turn...");
-    advanceTurn();
-  };
-
-  // Mostrar si hay jugadores
-  if (players.length === 0) {
-    return null;
+  if (localIndex === -1 || ordenTurnos.length === 0) {
+    return (
+      <div className="turno-indicator-compact">
+        <div className="turno-mensaje-compact">
+          <span className="turno-icono-compact">⏳</span>
+          <span className="turno-texto-compact">Cargando partida...</span>
+        </div>
+      </div>
+    );
   }
 
+  // Reordenar array: jugador local al final, resto en orden desde su izquierda
+  const reordenado = [
+    ...ordenTurnos.slice(localIndex + 1),
+    ...ordenTurnos.slice(0, localIndex + 1),
+  ];
+
+  // El jugador local siempre es el último
+  const local = reordenado[reordenado.length - 1];
+  const others = reordenado.slice(0, -1);
+
+  // Distribución según cantidad
+  const total = reordenado.length;
+  let left = [],
+    right = [],
+    top = [];
+
+  switch (total) {
+    case 2:
+      // Local abajo, el otro arriba
+      top = [others[0]];
+      break;
+    case 3:
+      // Local abajo, uno a la izquierda, uno a la derecha
+      left = [others[0]];
+      right = [others[1]];
+      break;
+    case 4:
+      // Local abajo, dos a los lados, uno arriba
+      left = [others[0]];
+      right = [others[1]];
+      top = [others[2]];
+      break;
+    case 5:
+      // Local abajo, dos arriba, dos a los lados
+      left = [others[0]];
+      right = [others[1]];
+      top = [others[2], others[3]];
+      break;
+    case 6:
+      // Local abajo, dos en cada columna, uno arriba
+      left = [others[0], others[1]];
+      right = [others[2], others[3]];
+      top = [others[4]];
+      break;
+    default:
+      break;
+  }
+
+  // Determinar si es el turno del jugador local
+  const esMiTurno = turnoActualId === localPlayerId;
+
+  // Encontrar nombre del jugador con turno
+  const jugadorConTurno = ordenTurnos.find((p) => p.id === turnoActualId);
+  const nombreTurno = jugadorConTurno?.nombre || "...";
+
+  // Función para agregar corona al jugador con turno
+  const agregarCorona = (jugador) => {
+    return turnoActualId === jugador.id;
+  };
+
   return (
-    <div className={`turno-indicator-compact ${isMyTurn ? "mi-turno" : ""}`}>
-      <div className="turno-mensaje-compact">
-        {isMyTurn ? (
-          <>
-            <span className="turno-icono-compact">🎯</span>
-            <span className="turno-texto-compact">Tu turno</span>
-          </>
-        ) : (
-          <>
-            <span className="turno-icono-compact">⏳</span>
-            <span className="turno-texto-compact">
-              Turno de {currentPlayer?.nombre || "..."}
-            </span>
-          </>
-        )}
+    <>
+      {/* Columna izquierda */}
+      <div className="players-col players-left" aria-hidden={left.length === 0}>
+        {left.map((p) => (
+          <div key={p.id} className="player-with-crown">
+            <Player player={p} />
+            {agregarCorona(p) && <span className="corona-turno">👑</span>}
+          </div>
+        ))}
       </div>
 
-      <div className="turno-botones-compact">
-        <button
-          className="btn-turno btn-principal-turno"
-          disabled={!isMyTurn}
-          onClick={handleDrawCard}
-        >
-          Jugar
-        </button>
-        <button
-          className="btn-turno btn-secundaria-turno"
-          disabled={!isMyTurn}
-          onClick={handlePassTurn}
-        >
-          Pasar
-        </button>
+      {/* Columna derecha */}
+      <div
+        className="players-col players-right"
+        aria-hidden={right.length === 0}
+      >
+        {right.map((p) => (
+          <div key={p.id} className="player-with-crown">
+            <Player player={p} />
+            {agregarCorona(p) && <span className="corona-turno">👑</span>}
+          </div>
+        ))}
       </div>
-    </div>
+
+      {/* Fila superior */}
+      <div className="players-top-row">
+        {top.map((p) => (
+          <div key={p.id} className="player-with-crown">
+            <Player player={p} />
+            {agregarCorona(p) && <span className="corona-turno">👑</span>}
+          </div>
+        ))}
+      </div>
+
+      {/* Área local: mano + secretos */}
+      <div className="local-area" aria-label="Area local">
+        <div className="hand-and-secrets">
+          {esMiTurno && <span className="corona-turno corona-local">👑</span>}
+          <Hand cards={local.cards || []} />
+          <div
+            className="local-secrets-horizontal"
+            aria-label="Secretos del jugador"
+          >
+            {(local.secretos || [false, false, false])
+              .slice(0, 3)
+              .map((s, i) => (
+                <Secret key={i} revealed={Boolean(s)} />
+              ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Indicador de turno compacto (esquina inferior derecha) */}
+      <div className={`turno-indicator-compact ${esMiTurno ? "mi-turno" : ""}`}>
+        <div className="turno-mensaje-compact">
+          {esMiTurno ? (
+            <>
+              <span className="turno-icono-compact">🎯</span>
+              <span className="turno-texto-compact">Tu turno</span>
+            </>
+          ) : (
+            <>
+              <span className="turno-icono-compact">⏳</span>
+              <span className="turno-texto-compact">
+                Turno de {nombreTurno}
+              </span>
+            </>
+          )}
+        </div>
+
+        <div className="turno-botones-compact">
+          <button
+            className="btn-turno btn-principal-turno"
+            disabled={!esMiTurno}
+            onClick={onAccionPrincipal}
+          >
+            Jugar
+          </button>
+          <button
+            className="btn-turno btn-secundaria-turno"
+            disabled={!esMiTurno}
+            onClick={onAccionSecundaria}
+          >
+            Pasar
+          </button>
+        </div>
+      </div>
+    </>
   );
 };
 

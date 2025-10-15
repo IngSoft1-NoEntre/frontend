@@ -1,5 +1,39 @@
 /* TurnoIndicator.css - Compacto para esquina */
 
+/* Contenedor para jugador con corona */
+.player-with-crown {
+  position: relative;
+}
+
+/* Corona de turno */
+.corona-turno {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 1.2rem;
+  z-index: 50;
+  animation: coronaBounce 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Corona para jugador local */
+.corona-local {
+  position: relative;
+  top: auto;
+  right: auto;
+  margin-right: 8px;
+  font-size: 1.4rem;
+}
+
+@keyframes coronaBounce {
+  0%, 100% {
+    transform: translateY(0px) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(5deg);
+  }
+}
+
 .turno-indicator-compact {
   position: absolute;
   bottom: 20px;
@@ -10,34 +44,31 @@
     rgba(0, 0, 0, 0.09)
   );
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px; /* Reduced from 12px */
-  padding: 10px 14px; /* Reduced from 12px 16px */
-  min-width: 180px; /* Reduced from 200px */
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-width: 180px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   z-index: 100;
   transition: all 0.3s ease;
 }
 
 .turno-indicator-compact.mi-turno {
-  border-color: rgba(255, 255, 255, 0.2); /* Removed golden border */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* Removed golden glow */
-  /* Removed animation: pulseGlowCompact */
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
-
-/* Removed pulseGlowCompact keyframes entirely */
 
 /* Mensaje de turno */
 .turno-mensaje-compact {
   display: flex;
   align-items: center;
-  gap: 7px; /* Reduced from 8px */
-  margin-bottom: 9px; /* Reduced from 10px */
-  padding-bottom: 7px; /* Reduced from 8px */
+  gap: 7px;
+  margin-bottom: 9px;
+  padding-bottom: 7px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .turno-icono-compact {
-  font-size: 1.1rem; /* Reduced from 1.2rem */
+  font-size: 1.1rem;
   flex-shrink: 0;
 }
 
@@ -50,62 +81,62 @@
     transform: scale(1);
   }
   50% {
-    transform: scale(1.1); /* Reduced from 1.15 */
+    transform: scale(1.1);
   }
 }
 
 .turno-texto-compact {
-  font-size: 0.8rem; /* Reduced from 0.9rem */
+  font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
   letter-spacing: 0.3px;
 }
 
 .turno-indicator-compact.mi-turno .turno-texto-compact {
-  color: rgba(255, 255, 255, 0.95); /* Changed from golden #d4af37 to white */
+  color: rgba(255, 255, 255, 0.95);
 }
 
 /* Botones de acción */
 .turno-botones-compact {
   display: flex;
-  gap: 7px; /* Reduced from 8px */
+  gap: 7px;
 }
 
 .btn-turno {
   flex: 1;
-  padding: 7px 11px; /* Reduced from 8px 12px */
+  padding: 7px 11px;
   border: none;
-  border-radius: 5px; /* Reduced from 6px */
+  border-radius: 5px;
   font-family: 'Lato', sans-serif;
   font-weight: 600;
-  font-size: 0.7rem; /* Reduced from 0.8rem */
+  font-size: 0.7rem;
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: uppercase;
-  letter-spacing: 0.4px; /* Reduced from 0.5px */
+  letter-spacing: 0.4px;
   white-space: nowrap;
 }
 
 .btn-principal-turno {
-  background: linear-gradient(135deg, #666, #888); /* Changed from golden gradient */
-  color: #ffffff; /* Changed from #0d0d0d */
+  background: linear-gradient(135deg, #666, #888);
+  color: #ffffff;
 }
 
 .btn-principal-turno:hover:not(:disabled) {
-  background: linear-gradient(135deg, #777, #999); /* Changed from golden hover */
+  background: linear-gradient(135deg, #777, #999);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Removed golden shadow */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .btn-secundaria-turno {
   background: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.3); /* Changed from golden border */
-  color: rgba(255, 255, 255, 0.8); /* Changed from golden color */
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .btn-secundaria-turno:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1); /* Changed from golden background */
-  border-color: rgba(255, 255, 255, 0.5); /* Changed from golden border */
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
 }
 
@@ -124,7 +155,7 @@
 @keyframes slideInFromRight {
   from {
     opacity: 0;
-    transform: translateX(45px); /* Reduced from 50px */
+    transform: translateX(45px);
   }
   to {
     opacity: 1;
@@ -141,12 +172,12 @@
   .turno-indicator-compact {
     bottom: 10px;
     right: 10px;
-    min-width: 160px; /* Reduced from 180px */
-    padding: 9px 11px; /* Reduced from 10px 12px */
+    min-width: 160px;
+    padding: 9px 11px;
   }
 
   .turno-mensaje-compact {
-    font-size: 0.75rem; /* Reduced from 0.85rem */
+    font-size: 0.75rem;
   }
 
   .turno-botones-compact {
@@ -154,18 +185,22 @@
   }
   
   .btn-turno {
-    font-size: 0.65rem; /* Reduced from 0.75rem */
-    padding: 5px 9px; /* Reduced from 6px 10px */
+    font-size: 0.65rem;
+    padding: 5px 9px;
+  }
+  
+  .corona-turno {
+    font-size: 1rem;
+    top: -6px;
+    right: -6px;
   }
 }
-
-/* Keep the base .turno-indicator class unchanged */
-.turno-indicator {
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.08),
     rgba(0, 0, 0, 0.09)
   );
+  .turno-indicator-compact {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 12px 16px;
@@ -173,4 +208,314 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   z-index: 100;
   transition: all 0.3s ease;
+}
+
+.turno-indicator-compact.mi-turno {
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+  animation: pulseGlowCompact 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlowCompact {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
+  }
+}
+
+/* Mensaje de turno */
+.turno-mensaje-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.turno-icono-compact {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.turno-indicator-compact.mi-turno .turno-icono-compact {
+  animation: iconPulseCompact 1.5s ease-in-out infinite;
+}
+
+@keyframes iconPulseCompact {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.turno-texto-compact {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.turno-indicator-compact.mi-turno .turno-texto-compact {
+  color: #d4af37;
+}
+
+/* Botones de acción */
+.turno-botones-compact {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-turno {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Lato', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.btn-principal-turno {
+  background: linear-gradient(135deg, #d4af37, #c9a553);
+  color: #0d0d0d;
+}
+
+.btn-principal-turno:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e6c76f, #d4af37);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(212, 175, 55, 0.4);
+}
+
+.btn-secundaria-turno {
+  background: transparent;
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  color: #d4af37;
+}
+
+.btn-secundaria-turno:hover:not(:disabled) {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: #d4af37;
+  transform: translateY(-2px);
+}
+
+.btn-turno:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  filter: grayscale(0.5);
+}
+
+.btn-turno:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Animación de entrada */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.turno-indicator-compact {
+  animation: slideInFromRight 0.4s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .turno-indicator-compact {
+    bottom: 10px;
+    right: 10px;
+    min-width: 180px;
+    padding: 10px 12px;
+  }
+
+  .turno-mensaje-compact {
+    font-size: 0.85rem;
+  }
+
+  .turno-botones-compact {
+    flex-direction: column;
+  }
+  
+  .btn-turno {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+  }
+}
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(0, 0, 0, 0.09)
+  );
+  .turno-indicator-compact {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.turno-indicator-compact.mi-turno {
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+  animation: pulseGlowCompact 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlowCompact {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
+  }
+}
+
+/* Mensaje de turno */
+.turno-mensaje-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.turno-icono-compact {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.turno-indicator-compact.mi-turno .turno-icono-compact {
+  animation: iconPulseCompact 1.5s ease-in-out infinite;
+}
+
+@keyframes iconPulseCompact {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.turno-texto-compact {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.turno-indicator-compact.mi-turno .turno-texto-compact {
+  color: #d4af37;
+}
+
+/* Botones de acción */
+.turno-botones-compact {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-turno {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Lato', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.btn-principal-turno {
+  background: linear-gradient(135deg, #d4af37, #c9a553);
+  color: #0d0d0d;
+}
+
+.btn-principal-turno:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e6c76f, #d4af37);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(212, 175, 55, 0.4);
+}
+
+.btn-secundaria-turno {
+  background: transparent;
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  color: #d4af37;
+}
+
+.btn-secundaria-turno:hover:not(:disabled) {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: #d4af37;
+  transform: translateY(-2px);
+}
+
+.btn-turno:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  filter: grayscale(0.5);
+}
+
+.btn-turno:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Animación de entrada */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.turno-indicator-compact {
+  animation: slideInFromRight 0.4s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .turno-indicator-compact {
+    bottom: 10px;
+    right: 10px;
+    min-width: 180px;
+    padding: 10px 12px;
+  }
+
+  .turno-mensaje-compact {
+    font-size: 0.85rem;
+  }
+
+  .turno-botones-compact {
+    flex-direction: column;
+  }
+  
+  .btn-turno {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+  }
 }

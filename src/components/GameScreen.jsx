@@ -1,171 +1,203 @@
-import React from "react";
-import { useParams } from "react-router-dom"; // Si usas React Router
+import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import "./GameScreen.css";
 import Player from "./Player";
 import Deck from "./Deck";
 import Hand from "./Hand";
-import Controls from "./Controls";
 import Secret from "./Secret";
-import TurnoIndicator from "./TurnoIndicator"; // NUEVO
+import TurnoIndicator from "./TurnoIndicator";
 
 const TOTAL_CARDS = 64;
 
-/**
- * GameScreen dinámico con indicador de turno integrado
- */
 export default function GameScreen({ players }) {
   const { partidaId } = useParams();
+  const [gameState, setGameState] = useState(null);
+  const [ordenTurnos, setOrdenTurnos] = useState([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [localPlayerId, setLocalPlayerId] = useState(null);
+  const wsRef = useRef(null);
 
-  const samplePlayers = [
-    {
-      id: 1,
-      nombre: "Juan",
-      fecha_nacimiento: "1995-08-20", // Aug 20 - ccerca a Sep 15
-      secretos: [false, false, false],
-      isLocal: false,
-    },
-    {
-      id: 3,
-      nombre: "Veronica",
-      fecha_nacimiento: "1992-11-12", // Nov 12
-      secretos: [false, false, false],
-      isLocal: false,
-    },
-    {
-      id: 4,
-      nombre: "Emanuel",
-      fecha_nacimiento: "1990-09-14", // Sep 14 - muy cerca de Sep 15!
-      secretos: [false, false, false],
-      isLocal: false,
-    },
-    {
-      id: 5,
-      nombre: "Agustin",
-      fecha_nacimiento: "1993-03-05", // Mar 5
-      secretos: [false, false, false],
-      isLocal: false,
-    },
-    {
-      id: 6,
-      nombre: "Lucas",
-      fecha_nacimiento: "1994-12-25", // Dec 25
-      secretos: [true, true, true],
-      isLocal: true,
-      cards: [
-        { title: "not_so_fast" },
-        { title: "cards_off_the_table" },
-        { title: "hercule_poirot" },
-        { title: "miss_marple" },
-        { title: "cards_off_the_table" },
-        { title: "dead_card_folly" },
-      ],
-    },
-  ];
+  // Get local player ID from localStorage
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split(".")[1]));
+        setLocalPlayerId(parseInt(decoded.sub));
+      } catch (error) {
+        console.error("Error decoding token:", error);
+      }
+    }
+  }, []);
+
+  // WebSocket connection
+  useEffect(() => {
+    if (!partidaId) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found");
+      return;
+    }
+
+    const wsUrl = `ws://localhost:8000/ws/game/${partidaId}?token=${token}`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log("[GameScreen] Connected to game WebSocket");
+      setIsConnected(true);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("[GameScreen] Received:", data);
+
+        switch (data.evento) {
+          case "iniciada":
+          case "estado_actualizado":
+            if (data.payload) {
+              setGameState(data.payload);
+
+              // Actualizar orden de turnos del backend
+              if (data.payload.orden_turnos) {
+                setOrdenTurnos(data.payload.orden_turnos);
+              }
+            }
+            break;
+
+          case "turno_cambiado":
+            if (data.payload?.turno_actual_id) {
+              setGameState((prev) => ({
+                ...prev,
+                turno_actual_id: data.payload.turno_actual_id,
+              }));
+            }
+            break;
+
+          case "error":
+            console.error("[GameScreen] Game error:", data.payload?.mensaje);
+            break;
+
+          default:
+            console.log("[GameScreen] Unhandled event:", data.evento);
+            break;
+        }
+      } catch (error) {
+        console.error("[GameScreen] Error parsing message:", error);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("[GameScreen] WebSocket connection closed");
+      setIsConnected(false);
+    };
+
+    ws.onerror = (error) => {
+      console.error("[GameScreen] WebSocket error:", error);
+      setIsConnected(false);
+    };
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
+  }, [partidaId]);
+
+  // Fallback: orden mock para desarrollo
+  useEffect(() => {
+    if (ordenTurnos.length === 0 && !isConnected) {
+      // Mock del orden de turnos (simula respuesta del backend)
+      const mockOrden = [
+        {
+          id: 6,
+          nombre: "Lucas",
+          secretos: [true, true, true],
+          cards: [
+            { title: "not_so_fast" },
+            { title: "cards_off_the_table" },
+            { title: "hercule_poirot" },
+            { title: "miss_marple" },
+            { title: "cards_off_the_table" },
+            { title: "dead_card_folly" },
+          ],
+        },
+        { id: 1, nombre: "Juan", secretos: [false, false, false] },
+        { id: 3, nombre: "Veronica", secretos: [false, false, false] },
+        { id: 4, nombre: "Emanuel", secretos: [false, false, false] },
+        { id: 5, nombre: "Agustin", secretos: [false, false, false] },
+      ];
+
+      setOrdenTurnos(mockOrden);
+      setLocalPlayerId(6); // Lucas es local
+
+      // Mock del turno inicial
+      setTimeout(() => {
+        setGameState({
+          turno_actual_id: 6, // Empieza Lucas
+          mazo_restante: 50,
+        });
+      }, 500);
+    }
+  }, [ordenTurnos.length, isConnected]);
 
   // Simulación del estado del descarte
-  const discardPileCards = [
+  const discardPileCards = gameState?.descarte || [
     { title: "hercule_poirot", type: "Detective" },
     { title: "not_so_fast", type: "Instant" },
     { title: "look_into_the_ashes", type: "Event" },
   ];
 
-  // Cálculo de los contadores
   const discardCount = discardPileCards.length;
-  const deckCount = TOTAL_CARDS - discardCount;
+  const deckCount = gameState?.mazo_restante || TOTAL_CARDS - discardCount;
 
-  // Usa players pasados como prop si existen, si no samplePlayers
-  const rawList = Array.isArray(players) ? players : samplePlayers;
-  const list = rawList.filter(Boolean);
-
-  // Encontrar jugador local
-  let local = list.find((p) => p.isLocal);
-  let others = list.filter((p) => !p.isLocal);
-
-  if (!local) {
-    local = others.length ? others[others.length - 1] : list[list.length - 1];
-    others = list.filter((p) => p.id !== local.id);
-  }
-
-  // Distribución según cantidad total
-  const total = 1 + others.length;
-  let left = [],
-    right = [],
-    top = [];
-
-  switch (total) {
-    case 2:
-      top = [others[0]];
-      break;
-    case 3:
-      left = [others[0]];
-      right = [others[1]];
-      break;
-    case 4:
-      left = [others[0]];
-      right = [others[1]];
-      top = [others[2]];
-      break;
-    case 5:
-      top = [others[0], others[1]];
-      left = [others[2]];
-      right = [others[3]];
-      break;
-    case 6:
-    default:
-      left = [others[0], others[1]].filter(Boolean);
-      right = [others[2], others[3]].filter(Boolean);
-      top = [others[4]].filter(Boolean);
-      break;
-  }
   const handleAccionPrincipal = async () => {
-    // Ejemplo: Robar carta
-    wsRef.current?.send(
-      JSON.stringify({
-        action: "draw_card",
-        from: "deck",
-      })
-    );
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          action: "draw_card",
+          from: "deck",
+        })
+      );
+    } else {
+      console.log("[MOCK] Acción Principal ejecutada");
+    }
   };
 
   const handleAccionSecundaria = async () => {
-    // Ejemplo: Pasar turno
-    wsRef.current?.send(
-      JSON.stringify({
-        action: "pass_turn",
-      })
-    );
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          action: "pass_turn",
+        })
+      );
+    } else {
+      console.log("[MOCK] Acción Secundaria ejecutada");
+    }
   };
 
   return (
     <div className="game-root">
+      {/* Connection status indicator */}
+      <div
+        style={{
+          position: "fixed",
+          top: "10px",
+          right: "10px",
+          padding: "5px 10px",
+          background: isConnected ? "green" : "orange",
+          color: "white",
+          borderRadius: "5px",
+          fontSize: "12px",
+          zIndex: 1000,
+        }}
+      >
+        {isConnected ? "Conectado" : "Modo Mock"}
+      </div>
+
       <div className="game-table">
-        {/* columna izquierda */}
-        <div
-          className="players-col players-left"
-          aria-hidden={left.length === 0}
-        >
-          {left.map((p) => (
-            <Player key={p.id} player={p} />
-          ))}
-        </div>
-
-        {/* columna derecha */}
-        <div
-          className="players-col players-right"
-          aria-hidden={right.length === 0}
-        >
-          {right.map((p) => (
-            <Player key={p.id} player={p} />
-          ))}
-        </div>
-
-        {/* fila superior */}
-        <div className="players-top-row">
-          {top.map((p) => (
-            <Player key={p.id} player={p} />
-          ))}
-        </div>
-
         {/* Centro: mazos */}
         <div className="center-area">
           <Deck
@@ -175,30 +207,14 @@ export default function GameScreen({ players }) {
           />
         </div>
 
-        {/* Local: mano + secretos */}
-        <div className="local-area" aria-label="Area local">
-          <div className="hand-and-secrets">
-            <Hand cards={local.cards || []} />
-            <div
-              className="local-secrets-horizontal"
-              aria-label="Secretos del jugador"
-            >
-              {(local.secretos || [false, false, false])
-                .slice(0, 3)
-                .map((s, i) => (
-                  <Secret key={i} revealed={Boolean(s)} />
-                ))}
-            </div>
-          </div>
-        </div>
-
-        {/* NUEVO: Indicador de turno en esquina inferior derecha */}
+        {/* Indicador de turno - AHORA ORQUESTA TODO */}
         <TurnoIndicator
-          partidaId={parseInt(partidaId)}
-          players={samplePlayers} // usar samplePlayers o los jugadores reales
+          ordenTurnos={ordenTurnos}
+          turnoActualId={gameState?.turno_actual_id}
+          localPlayerId={localPlayerId}
+          onAccionPrincipal={handleAccionPrincipal}
+          onAccionSecundaria={handleAccionSecundaria}
         />
-
-        {/*<Controls />*/}
       </div>
     </div>
   );
