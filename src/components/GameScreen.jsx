@@ -8,24 +8,13 @@ import Hand from "./Hand";
 import Secret from "./Secret";
 import Controls from "./Controls";
 import FinishGameModal from "./FinishGameModal";
-import GameSocket from "./GameSocket";
+import useGameSocket from "./useGameSocket";
 
 export default function GameScreen() {
   const { partidaId } = useParams();
-  const token = localStorage.getItem("token");
-  const [wsListo, setWsListo] = useState(false);
-  const  { enviarAccion } = GameSocket
-
-  const [estadoDelJuego, setEstadoDelJuego] = useState({
-    turno_actual_id: null,
-    mazo_restante: 0,
-    descarte: [],
-    mano: [],
-    secretos: [],
-    estado_draft: {},
-    acciones_disponibles: [],
-    jugador_id: null, // si lo necesitás para validar turno
-  });
+  
+  
+  const  { enviarAccion, estadoDelJuego, wsListo } = useGameSocket()
 
   const [ganadorId, setGanadorId] = useState(null);
   const [mensajeFinal, setMensajeFinal] = useState("");

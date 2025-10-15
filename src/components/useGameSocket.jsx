@@ -1,9 +1,25 @@
 import React, { useContext,useEffect, useState, useRef} from "react";
 import { GameStateContext } from "../context/GameStateContext";
 
-export default function GameSocket() {
-
+export default function useGameSocket() {
   const socketRef = useRef(null); // referencia persistente
+  const [wsListo, setWsListo] = useState(false);
+
+  const token = localStorage.getItem("token");
+  const partidaId = localStorage.getItem("partidaId");
+
+
+    const [estadoDelJuego, setEstadoDelJuego] = useState({
+      turno_actual_id: null,
+      mazo_restante: 0,
+      descarte: [],
+      mano: [],
+      secretos: [],
+      estado_draft: {},
+      acciones_disponibles: [],
+      jugador_id: null, // si lo necesitás para validar turno
+    });
+
 
     const enviarAccion = (accion) => {
       if (wsListo && socketRef.current) {
@@ -93,8 +109,10 @@ export default function GameSocket() {
     return () => socket.close();
   }, [partidaId, token]);
 
-    return({
-      enviarAccion
-    })
+    return {
+      enviarAccion,
+      estadoDelJuego,
+      wsListo
+    }
 
 }
