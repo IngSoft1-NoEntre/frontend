@@ -44,8 +44,8 @@ const GameList = () => {
   useEffect(() => {
     cargarPartidas();
 
-    // Actualizar cada 5 segundos
-    const interval = setInterval(cargarPartidas, 5000);
+    // Actualizar cada 10 segundos
+    const interval = setInterval(cargarPartidas, 10000);
 
     return () => clearInterval(interval);
   }, []);
