@@ -5,6 +5,7 @@ import JugadorForm from "./components/JugadorForm";
 import LobbyContainer from "./components/LobbyContainer";
 import GameList from "./components/GameList";
 import GameScreen from "./components/GameScreen";
+import GameStateProvider from "./context/GameStateProvider";
 
 function App() {
   return (
@@ -24,7 +25,16 @@ function App() {
         }
       />
       <Route path="/lobby/:partidaId" element={<LobbyContainer />} />
-      <Route path="/juego/:partidaId" element={<GameScreen />} />
+
+      {/* ONLY wrap the game route with the provider */}
+      <Route
+        path="/juego/:partidaId"
+        element={
+          <GameStateProvider>
+            <GameScreen />
+          </GameStateProvider>
+        }
+      />
     </Routes>
   );
 }
