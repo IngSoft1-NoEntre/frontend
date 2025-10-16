@@ -1,4 +1,5 @@
-import React, { useContext, useState } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
+import { useParams } from "react-router-dom"
 import { GameStateContext } from "../context/GameStateContext";
 import "./GameScreen.css";
 import Player from "./Player";
@@ -18,57 +19,148 @@ import SecretModal from "./SecretModal";
  * 5 -> local + 1 left + 1 right + 2 arriba
  * 6 -> local + 2 left + 2 right + 1 arriba
  */
+
+const TOTAL_CARDS_FIXED = 64;
+
+const emptyPlayer = { id: -1, nombre: "Local", secretos: [false, false, false], isLocal: true, cards: [] };
+
+const mapPlayerFromBackend = (p, localId) => ({
+    id: p.id,
+    nombre: p.nombre,
+    secretos: [false, false, false], 
+    isLocal: p.id === localId,
+});
+
 export default function GameScreen({ players }) {
-  // Lo inicializamos en 'false'. Se abrirá automáticamente más adelante
+  const { partidaId } = useParams();
+  const token = localStorage.getItem("token");
+
+  const { 
+    setLocalPlayerCards,
+    setDiscardPileCards,
+    localPlayerCards,
+    discardPileCards,
+    deckCount,
+    TOTAL_CARDS: TOTAL_CARDS_CONTEXT,
+    cardPictures
+  } = useContext(GameStateContext);
+
+// ESTADOS PRINCIPALES (No relacionados con cartas)
+  const [ws, setWs] = useState(null);
+  const [gamePlayers, setGamePlayers] = useState([]); 
+  const [localPlayerId, setLocalPlayerId] = useState(null);
+  const [turnoActualId, setTurnoActualId] = useState(null);
+  const [localPlayerSecrets, setLocalPlayerSecrets] = useState([true, true, true]); 
+
+  // ESTADOS SECUNDARIOS
+  const [loading, setLoading] = useState(true);
   const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
+  const [openSecret, setOpenSecret] = useState(null);
 
-  const { discardPileCards, TOTAL_CARDS, localPlayerCards } = useContext(GameStateContext); 
+  useEffect(() => {
+    if (!partidaId || !token) return;
 
-  // ejemplo de render con jugadores — podés comentar jugadores con "//" de este array para probar:
-  const samplePlayers = [
-    { id: 1, nombre: "Juan", secretos: [false, false, false], isLocal: false },
-    //{ id: 2, nombre: "Jere", secretos: [false, false, false], isLocal: false },
-    {
-      id: 3,
-      nombre: "Veronica",
-      secretos: [false, false, false],
-      isLocal: false,
-    }, // ejemplo comentado
-    {
-      id: 4,
-      nombre: "Emanuel",
-      secretos: [false, false, false],
-      isLocal: false,
-    },
-    {
-      id: 5,
-      nombre: "Agustin",
-      secretos: [false, false, false],
-      isLocal: false,
-    },
-    {
-      id: 6,
-      nombre: "Lucas",
-      secretos: [true, true, true],
-      isLocal: true,
-      cards: [
-        // Usar las claves exactas del diccionario
-        { title: "not_so_fast" },
-        { title: "cards_off_the_table" }, // Asumiendo que "Event" es "cards_off_the_table"
-        { title: "hercule_poirot" }, // Asumiendo que "Detective" es "hercule_poirot"
-        { title: "miss_marple" }, // Usamos otro detective
-        { title: "cards_off_the_table" },
-        { title: "dead_card_folly" },
-      ],
-    },
-  ];
+    let socket; 
 
-  // Cálculo de los contadores:
-  const discardCount = discardPileCards.length;
-  // El mazo regular es el Total menos las descartadas.
-  const deckCount = TOTAL_CARDS - discardCount;
-  //condicion de fin de juego
+    const fetchInitialData = async () => {
+        try {
+            // ... (PETICIÓN HTTP GET) ...
+            const res = await fetch(`http://localhost:8000/partidas/${partidaId}/turno/`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            let data;
+            
+            if (!res.ok) {
+                // ... (Manejo de errores HTTP) ...
+                let errorMessage = `Error HTTP ${res.status}...`;
+                try { const errorData = await res.json(); errorMessage = errorData.detail || errorMessage; } catch (e) { console.error("Error parsing body."); }
+                throw new Error(errorMessage); 
+            }
+            
+            data = await res.json();
+            
+            // --- CONEXIÓN AL WEB SOCKET ---
+            const wsUrl = `ws://localhost:8000/ws/game/${partidaId}?token=${token}`;
+            socket = new WebSocket(wsUrl);
+            setWs(socket);
+            
+            socket.onmessage = (event) => {
+                const dataWS = JSON.parse(event.data);
+                console.log("Mensaje WS recibido:", dataWS);
+
+                if (dataWS.evento === "conectado") {
+                    const localId = dataWS.jugador_id;
+                    setLocalPlayerId(localId); 
+                    setGamePlayers(data.orden_turnos.map(p => mapPlayerFromBackend(p, localId)));
+                    setLoading(false);
+                }
+                
+                if (dataWS.evento === "iniciada" || dataWS.evento === "estado_actualizado" || dataWS.evento === "actualizacion") {
+                    const payload = dataWS.payload || {};
+
+                    // Obtener la mano del backend
+                    const rawMano = payload.mano || [];
+
+                    // Mapear para asegurar que tengan la clave 'title'
+                    const mappedMano = rawMano.map(card => ({
+                      id: card.id,
+                      title: card.nombre || "card_back",
+                      tipo: card.tipo,
+                      zona: card.zona
+                    }));
+                    
+                    // USAR SETTERS DEL CONTEXTO PARA CARTAS
+                    setLocalPlayerCards(mappedMano);
+                    setDiscardPileCards(payload.restante || []); // AQUI CAMBIE: payload.descarte POR payload.restante para que incialice en 0 el discarPile
+                    
+                    //  ACTUALIZAR SECRETOS LOCALES
+                    if (payload.secretos_local) { 
+                        setLocalPlayerSecrets(payload.secretos_local);
+                    }
+                    
+                    setTurnoActualId(payload.turno_actual_id);
+                }
+            };
+            
+            socket.onclose = () => console.log("Conexión WS de juego cerrada.");
+
+        } catch (err) {
+            console.error("FALLO CRÍTICO EN CARGA DE PARTIDA:", err.message);
+            setLoading(false);
+            socket?.close(); 
+        }
+    };
+
+    fetchInitialData();
+    
+    // Cleanup del useEffect
+    return () => socket?.close(); 
+  }, [partidaId, token, setLocalPlayerCards, setDiscardPileCards]);
+
+  // --- CÁLCULO DE ESTADOS DERIVADOS ---
+  // deckCount y discardPileCards vienen del Context
   const isDeckEmpty = deckCount <= 0;
+  
+  // DISTRIBUCIÓN DE JUGADORES
+  const list = gamePlayers.filter(Boolean);
+
+  let local = list.find((p) => p.isLocal);
+  let others = list.filter((p) => !p.isLocal);
+
+  if (local) {
+      // ASIGNAR LOS SECRETOS LOCALES (actualizados por WS o estado inicial)
+      local = { ...local, secretos: localPlayerSecrets };
+  } else {
+    local = list.length > 0 ? list.find(p => p.id === localPlayerId) || list[0] : emptyPlayer;
+    others = list.filter((p) => p.id !== local.id);
+  }
+
+  if (!local) {
+    // tomar el último como local por defecto
+    local = others.length ? others[others.length - 1] : list[list.length - 1];
+    others = list.filter((p) => p.id !== local.id);
+  }
 
   // Si el mazo está vacío Y el modal no se ha abierto, lo abrimos.
   // Usaremos un efecto para manejar esta apertura automática:
@@ -77,29 +169,7 @@ export default function GameScreen({ players }) {
       setIsGameOverModalOpen(true);
     }
   }, [isDeckEmpty, isGameOverModalOpen]);
-
-  // La función para cerrar el modal (usada en el botón "Volver a jugar" del modal)
-  // Aunque "Volver a jugar" navega, tener esta función de cierre es buena práctica.
-  const closeGameOverModal = () => setIsGameOverModalOpen(false);
-  // estado modal
-  const [openSecret, setOpenSecret] = useState(null);
-  const openSecretModal = (data) => { if (data?.revealed) setOpenSecret(data); };
-  const closeSecretModal = () => setOpenSecret(null);
-
-  // Usa players pasados como prop si existen, si no samplePlayers
-  const rawList = Array.isArray(players) ? players : samplePlayers;
-  const list = rawList.filter(Boolean); // elimina `undefined`, `null`, etc.
-
-  // Encontrar jugador local (isLocal: true). Si no hay ninguno, usamos el último como local.
-  let local = list.find((p) => p.isLocal);
-  let others = list.filter((p) => !p.isLocal);
-
-  if (!local) {
-    // tomar el último como local por defecto
-    local = others.length ? others[others.length - 1] : list[list.length - 1];
-    others = list.filter((p) => p.id !== local.id);
-  }
-
+ 
   // distribución según cantidad total
   const total = 1 + others.length; // local + otros
   let left = [],
@@ -137,10 +207,15 @@ export default function GameScreen({ players }) {
       break;
   }
 
-  // rutas de imagen (si están en public/assets)
-  const back = "/assets/img/05-secret_back.png";
-  const front  = "/assets/img/06-secret_front.png";
+  // La función para cerrar el modal (usada en el botón "Volver a jugar" del modal)
+  // Aunque "Volver a jugar" navega, tener esta función de cierre es buena práctica.
+  const closeGameOverModal = () => setIsGameOverModalOpen(false);
+  const openSecretModal = (data) => { if (data?.revealed) setOpenSecret(data); };
+  const closeSecretModal = () => setOpenSecret(null);
 
+  const secretFrontUrl = cardPictures["varios"];
+  const secretBackUrl = cardPictures["secret_back"];
+  
   return (
     <div className="game-root">
       <div className="game-table">
@@ -150,7 +225,13 @@ export default function GameScreen({ players }) {
           aria-hidden={left.length === 0}
         >
           {left.map((p) => (
-            <Player key={p.id} player={p} onOpenSecret={openSecretModal}/>
+            <Player 
+              key={p.id} 
+              player={p} 
+              onOpenSecret={openSecretModal}
+              secretFrontUrl={secretFrontUrl}
+              secretBackUrl={secretBackUrl}
+            />
           ))}
         </div>
 
@@ -160,14 +241,26 @@ export default function GameScreen({ players }) {
           aria-hidden={right.length === 0}
         >
           {right.map((p) => (
-            <Player key={p.id} player={p} onOpenSecret={openSecretModal}/>
+            <Player 
+              key={p.id} 
+              player={p} 
+              onOpenSecret={openSecretModal}
+              secretFrontUrl={secretFrontUrl}
+              secretBackUrl={secretBackUrl}
+            />
           ))}
         </div>
 
         {/* fila superior (puede tener 0,1 o 2 jugadores) */}
         <div className="players-top-row">
           {top.map((p) => (
-            <Player key={p.id} player={p}onOpenSecret={openSecretModal}/>
+            <Player 
+              key={p.id} 
+              player={p} 
+              onOpenSecret={openSecretModal}
+              secretFrontUrl={secretFrontUrl}
+              secretBackUrl={secretBackUrl}
+            />
           ))}
         </div>
 
@@ -176,7 +269,7 @@ export default function GameScreen({ players }) {
           <Deck
             discardCards={discardPileCards}
             deckCount={deckCount}
-            totalCards={TOTAL_CARDS}
+            totalCards={TOTAL_CARDS_CONTEXT}
           />
         </div>
 
@@ -192,8 +285,8 @@ export default function GameScreen({ players }) {
                   isLocal={true}
                   data={{
                     title: `Secreto ${i + 1}`,
-                    frontImage: front,
-                    backImage: back,
+                    frontImage: secretFrontUrl,
+                    backImage: secretBackUrl,
                   }}
                   onOpen={(d) => openSecretModal({ ...d, revealed: true })}
                 />

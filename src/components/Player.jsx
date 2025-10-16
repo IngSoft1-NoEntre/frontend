@@ -6,7 +6,7 @@ import Secret from "./Secret";
  * Player minimal: esfera con inicial encima, nombre debajo, secretos en fila horizontal.
  * Props: player = { id, nombre, secretos: [bool,bool,bool], isLocal }
  */
-export default function Player({ player }) {
+export default function Player({ player, onOpenSecret, secretFrontUrl, secretBackUrl }) {
   const { nombre = "Esperando", secretos = [false, false, false], isLocal = false } = player;
 
   return (
@@ -28,7 +28,9 @@ export default function Player({ player }) {
             data={{
               revealed: Boolean(isLocal && s),
               title: `${nombre} - Secreto ${i+1}`,
-              text: isLocal && s ? "Contenido privado" : null
+              text: isLocal && s ? "Contenido privado" : null,
+              frontImage: secretFrontUrl,
+              backImage: secretBackUrl,
             }}
             onOpen={(data) => {
               if (data?.revealed) onOpenSecret && onOpenSecret({ ...data, owner: nombre });

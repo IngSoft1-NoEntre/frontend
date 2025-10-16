@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, createContext } from 'react';
 import { GameStateContext } from './GameStateContext';
 
 import card_00 from '../assets/Cartas/00-help.png';
@@ -45,16 +45,7 @@ const EXCLUDED_CARD_KEYS = [
 
 const GameStateProvider = ({ children }) => {
 
-  const [localPlayerCards, setLocalPlayerCards] = useState([
-        // Estas son las cartas que hay en GameScreen.jsx.
-        // Asignamos un ID único para que la selección funcione correctamente.
-        { id: 101, title: "not_so_fast" },
-        { id: 102, title: "cards_off_the_table" },
-        { id: 103, title: "hercule_poirot" },
-        { id: 104, title: "miss_marple" },
-        { id: 105, title: "cards_off_the_table" },
-        { id: 106, title: "dead_card_folly" },
-    ]);
+  const [localPlayerCards, setLocalPlayerCards] = useState([]); 
   const [selectedCardIds, setSelectedCardIds] = useState([]); // Estado de selección
 
   // esto es un dict para consultar que imagen tiene que mostrar cada carta
@@ -67,8 +58,8 @@ const GameStateProvider = ({ children }) => {
     "murder_escapes" : card_02,
     "youre_the_murderer" : card_03,
     "youre_the_accomplice" : card_04,
-    "varios" : card_05,
-    "secret_back" : card_06,
+    "varios" : card_06,
+    "secret_back" : card_05,
     "hercule_poirot" : card_07,
     "miss_marple" : card_08,
     "mr_satterthwhite" : card_09,
@@ -130,12 +121,12 @@ const GameStateProvider = ({ children }) => {
   const discardSelectedCards = () => {
     if (selectedCardIds.length === 0) return;
 
-    // 1. Obtener las cartas a descartar EN ORDEN DE SELECCIÓN
+    // Obtener las cartas a descartar EN ORDEN DE SELECCIÓN
     const cardsToDiscard = selectedCardIds.map(id => 
         localPlayerCards.find(card => card.id === id)
     ).filter(Boolean); // Filtramos por si acaso
 
-    // 2. Mover las cartas descartadas a la pila de descarte
+    // Mover las cartas descartadas a la pila de descarte
     setDiscardPileCards(prevDiscardPile => {
         // El orden en selectedCardIds es el orden en que se descartaron.
         return [
@@ -145,7 +136,7 @@ const GameStateProvider = ({ children }) => {
         ];
     });
 
-    // 3. Actualizar la mano del jugador
+    // Actualizar la mano del jugador
     setLocalPlayerCards(prevHand => {
         const cardsToKeep = prevHand.filter(card => !selectedCardIds.includes(card.id));
         let newHand = [...cardsToKeep];
@@ -166,7 +157,7 @@ const GameStateProvider = ({ children }) => {
         return newHand;
     });
             
-    // 4. Limpiar las cartas seleccionadas
+    // Limpiar las cartas seleccionadas
     setSelectedCardIds([]);
   };
 
@@ -174,8 +165,10 @@ const GameStateProvider = ({ children }) => {
 
   const contextValue = { 
     localPlayerCards,
+    setLocalPlayerCards, 
     cardPictures,
     discardPileCards,
+    setDiscardPileCards,
     discardSelectedCards,  
     toggleCardSelection,   
     selectedCardIds,       

@@ -1,16 +1,17 @@
-// src/components/Secret.jsx
 import React from "react";
 import "./Secret.css";
-import backImg from "../assets/img/05-secret_back.png";
-import frontImg from "../assets/img/06-secret_front.png";
 
 /**
  * Secret
  * Props:
- *  - revealed: boolean -> si la carta está revelada (el local la verá revelada)
- *  - isLocal: boolean -> ayuda a decidir qué imagen usar por defecto
- *  - onOpen: fn(data) -> se llama solo si revealed === true (abrir modal)
- *  - data: objeto opcional (title, text, image)
+ * - revealed: boolean
+ * - isLocal: boolean
+ * - onOpen: fn(data)
+ * - data: { 
+ * title: string, 
+ * frontImage: string (URL REAL), 
+ * backImage: string (URL REAL) 
+ * }
  */
 export default function Secret({
   revealed = false,
@@ -18,8 +19,14 @@ export default function Secret({
   onOpen = null,
   data = {},
 }) {
-  // elegir imagen: si está revelada usamos frontImg, si no backImg
-  const image = revealed ? data.image || frontImg : data.backImage || backImg;
+  const frontUrl = data.frontImage; 
+  const backUrl = data.backImage;
+
+  // Elegir imagen: si está revelada usamos la URL frontal, si no la URL trasera.
+  const image = revealed ? frontUrl : backUrl; 
+  
+  // Si no hay imagen, no renderizamos nada o usamos un placeholder.
+  if (!image) return null; 
 
   return (
     <div
@@ -32,7 +39,7 @@ export default function Secret({
         if (revealed && (e.key === "Enter" || e.key === " "))
           onOpen && onOpen({ ...data, image });
       }}
-      // no hover reveal para otros: simplemente estilo visual si querés
+      // La URL en 'image' es ahora la URL real de la imagen importada en GameScreen.
       style={{ backgroundImage: `url(${image})` }}
     />
   );
