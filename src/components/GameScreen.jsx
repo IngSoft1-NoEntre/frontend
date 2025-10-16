@@ -14,7 +14,7 @@ export default function GameScreen() {
     localPlayerId,
     deckCount,
     discardPileCards,
-    handleJugar,
+    handleDescartar,
     handleSaltarTurno,
     handleTerminarTurno,
   } = useContext(GameStateContext);
@@ -71,7 +71,7 @@ export default function GameScreen() {
           ordenTurnos={ordenTurnos}
           turnoActualId={gameState?.turno_actual_id}
           localPlayerId={localPlayerId}
-          onJugar={handleJugar}
+          onDescartar={handleDescartar}
           onSaltarTurno={handleSaltarTurno}
           onTerminarTurno={handleTerminarTurno}
         />

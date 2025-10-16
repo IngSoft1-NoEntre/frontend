@@ -13,7 +13,7 @@ const TurnoIndicator = ({
   ordenTurnos = [],
   turnoActualId,
   localPlayerId,
-  onJugar,
+  onDescartar,
   onSaltarTurno,
   onTerminarTurno,
 }) => {
@@ -162,10 +162,10 @@ const TurnoIndicator = ({
           <button
             className="btn-turno btn-principal-turno"
             disabled={!esMiTurno}
-            onClick={onJugar}
-            title="Jugar carta"
+            onClick={onDescartar}
+            title="Descartar carta"
           >
-            Jugar
+            Descartar
           </button>
           <button
             className="btn-turno btn-secundaria-turno"

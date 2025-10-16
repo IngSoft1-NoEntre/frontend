@@ -66,6 +66,7 @@ const GameForm = () => {
       // Extrae el ID de la partida creada desde la respuesta
       const data = await res.json();
       const partidaId = data.id;
+      localStorage.setItem("partidaId", partidaId);
 
       // Redirige al lobby de la partida recién creada
       // En esa pantalla se conectará al WebSocket automáticamente
