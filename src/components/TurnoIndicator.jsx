@@ -189,4 +189,55 @@ const TurnoIndicator = ({
   );
 };
 
+// Simple TurnoIndicator that just shows turn info and buttons
+const SimpleTurnoIndicator = ({
+  gameState,
+  players,
+  localPlayerId,
+  onDescartar,
+  onTerminar,
+}) => {
+  const currentPlayer = players.find(
+    (p) => p.id === gameState?.turno_actual_id
+  );
+  const isMyTurn = gameState?.turno_actual_id === localPlayerId;
+
+  return (
+    <div className="turno-indicator-compact">
+      <div className="turno-mensaje-compact">
+        {isMyTurn ? (
+          <>
+            <span className="turno-icono-compact">👑</span>
+            <span className="turno-texto-compact">Tu turno</span>
+          </>
+        ) : (
+          <>
+            <span className="turno-icono-compact">⏳</span>
+            <span className="turno-texto-compact">
+              Turno de {currentPlayer?.nombre || "..."}
+            </span>
+          </>
+        )}
+      </div>
+
+      {isMyTurn && (
+        <div className="turno-botones-compact">
+          <button
+            className="btn-turno btn-principal-turno"
+            onClick={onDescartar}
+          >
+            Descartar
+          </button>
+          <button
+            className="btn-turno btn-secundaria-turno"
+            onClick={onTerminar}
+          >
+            Terminar
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default TurnoIndicator;

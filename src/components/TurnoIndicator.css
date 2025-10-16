@@ -101,18 +101,17 @@
 /* Botones de acción */
 .turno-botones-compact {
   display: flex;
-  gap: 5px; /* Reduced gap for 3 buttons */
+  gap: 8px;
+  margin-top: 5px;
 }
 
 .btn-turno {
   flex: 1;
-  padding: 7px 11px;
-  border: none;
-  border-radius: 5px;
-  font-family: 'Lato', sans-serif;
-  font-weight: 600;
-  font-size: 0.7rem;
+  padding: 6px 12px;
+  border: 2px solid;
+  background: transparent;
   cursor: pointer;
+  font-size: 0.8rem;
   transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -120,43 +119,38 @@
 }
 
 .btn-principal-turno {
-  background: linear-gradient(135deg, #666, #888); /* Changed from golden gradient */
-  color: #ffffff; /* Changed from #0d0d0d */
+  border-color: #4CAF50;
+  color: #4CAF50;
 }
 
 .btn-principal-turno:hover:not(:disabled) {
-  background: linear-gradient(135deg, #777, #999); /* Changed from golden hover */
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Removed golden shadow */
+  background: #4CAF50;
+  color: white;
 }
 
 .btn-secundaria-turno {
-  background: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.3); /* Changed from golden border */
-  color: rgba(255, 255, 255, 0.8); /* Changed from golden color */
+  border-color: #FF9800;
+  color: #FF9800;
 }
 
 .btn-secundaria-turno:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1); /* Changed from golden background */
-  border-color: rgba(255, 255, 255, 0.5); /* Changed from golden border */
-  transform: translateY(-2px);
+  background: #FF9800;
+  color: white;
 }
 
 .btn-terciaria-turno {
-  background: transparent;
-  border: 2px solid rgba(255, 165, 0, 0.4); /* Orange border */
-  color: rgba(255, 165, 0, 0.8); /* Orange text */
+  border-color: #2196F3;
+  color: #2196F3;
 }
 
 .btn-terciaria-turno:hover:not(:disabled) {
-  background: rgba(255, 165, 0, 0.1); /* Orange background */
-  border-color: rgba(255, 165, 0, 0.6); /* Brighter orange border */
-  transform: translateY(-2px);
+  background: #2196F3;
+  color: white;
 }
 
 .btn-turno:disabled {
   cursor: not-allowed;
-  opacity: 0.4;
+  opacity: 0.5;
   filter: grayscale(0.5);
 }
 

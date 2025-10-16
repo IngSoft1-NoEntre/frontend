@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useState, createContext } from "react";
 import { GameStateContext } from "./GameStateContext";
 
 import card_00 from "../assets/Cartas/00-help.png";
@@ -33,396 +32,43 @@ import card_27 from "../assets/Cartas/27-devious_fauxpas.png";
 
 const TOTAL_CARDS = 64;
 
+// **Listado de cartas a excluir de la mano de los jugadores**
+const EXCLUDED_CARD_KEYS = [
+  "help",
+  "card_back",
+  "secret_back",
+  "murder_escapes",
+  "youre_the_murderer",
+  "youre_the_accomplice",
+  "varios", //caras de los secretos
+];
+
 const GameStateProvider = ({ children }) => {
-  const [localPlayerCards, setLocalPlayerCards] = useState([
-    { id: 101, title: "not_so_fast" },
-    { id: 102, title: "cards_off_the_table" },
-    { id: 103, title: "hercule_poirot" },
-    { id: 104, title: "miss_marple" },
-    { id: 105, title: "cards_off_the_table" },
-    { id: 106, title: "dead_card_folly" },
-  ]);
+  // EXISTING state
+  const [localPlayerCards, setLocalPlayerCards] = useState([]);
   const [selectedCardIds, setSelectedCardIds] = useState([]);
+  const [discardPileCards, setDiscardPileCards] = useState([]);
 
-  const [ordenTurnos, setOrdenTurnos] = useState([]);
-  const [playersCache, setPlayersCache] = useState({});
-  const [isConnected, setIsConnected] = useState(false);
-  const [localPlayerId, setLocalPlayerId] = useState(null);
-  const wsRef = useRef(null);
-
-  // FIXED: Get partidaId from useParams instead of localStorage
-  const { partidaId } = useParams();
-
-  //Estado actualizado de todo el juego
+  // NEW state for TurnoIndicator
   const [gameState, setGameState] = useState({
     turno_actual_id: null,
-    mazo_restante: 0,
-    descarte: [],
-    mano: [],
-    secretos: [],
-    estado_draft: {},
+    mazo_restante: TOTAL_CARDS,
     acciones_disponibles: [],
-    jugador_id: null, // si lo necesitás para validar turno
   });
 
-  //setGameState({ ...gameState, turno_actual_id: 5 }); // IGNORE
+  const [ordenTurnos, setOrdenTurnos] = useState([]);
+  const [localPlayerId, setLocalPlayerId] = useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = JSON.parse(atob(token.split(".")[1]));
-        setLocalPlayerId(parseInt(decoded.sub));
-      } catch (error) {
-        console.error("Error decoding token:", error);
-      }
-    }
-  }, []);
-
-  // FIXED: Add back the fetchPlayerInfo function (simplified)
-  const fetchPlayerInfo = async (playerId) => {
-    // Check cache first
-    if (playersCache[playerId]) {
-      return playersCache[playerId];
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:8000/jugadores/${playerId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.ok) {
-        const playerData = await response.json();
-
-        const playerInfo = {
-          id: playerData.id,
-          nombre: playerData.nombre,
-          fecha_nacimiento: playerData.fecha_nacimiento,
-          secretos: [false, false, false],
-          cards: playerId === localPlayerId ? localPlayerCards : [],
-        };
-
-        // Cache the player info
-        setPlayersCache((prev) => ({
-          ...prev,
-          [playerId]: playerInfo,
-        }));
-
-        return playerInfo;
-      }
-    } catch (error) {
-      console.error(`Error fetching player ${playerId}:`, error);
-    }
-
-    // Fallback if fetch fails
-    return {
-      id: playerId,
-      nombre: `Jugador ${playerId}`,
-      fecha_nacimiento: "1990-01-01",
-      secretos: [false, false, false],
-      cards: playerId === localPlayerId ? localPlayerCards : [],
-    };
-  };
-
-  /*const fetchPlayerInfo = async (playerId) => {
-    if (playersCache[playerId]) {
-      return playersCache[playerId];
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:8000/jugadores/${playerId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.ok) {
-        const playerData = await response.json();
-
-        setPlayersCache((prev) => ({
-          ...prev,
-          [playerId]: {
-            id: playerData.id,
-            nombre: playerData.nombre,
-            fecha_nacimiento: playerData.fecha_nacimiento,
-            secretos: [false, false, false],
-            cards: playerId === localPlayerId ? localPlayerCards : [],
-          },
-        }));
-
-        return playersCache[playerId];
-      }
-    } catch (error) {
-      console.error(`Error fetching player ${playerId}:`, error);
-    }
-
-    return {
-      id: playerId,
-      nombre: `Jugador ${playerId}`,
-      fecha_nacimiento: "1990-01-01",
-      secretos: [false, false, false],
-      cards: playerId === localPlayerId ? localPlayerCards : [],
-    };
-  };*/
-
-  // WebSocket useEffect
-  useEffect(() => {
-    if (!partidaId || !localPlayerId) return;
-
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    const wsUrl = `ws://localhost:8000/ws/game/${partidaId}?token=${token}`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      console.log("[GameStateProvider] Connected to game WebSocket");
-      setIsConnected(true);
-    };
-
-    ws.onmessage = async (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log("[GameStateProvider] Received:", data);
-
-        switch (data.evento) {
-          case "conectado":
-            console.log("[GameStateProvider] Connected to game:", data.mensaje);
-            break;
-
-          case "iniciada":
-          case "estado_actualizado":
-            if (data.payload) {
-              setGameState(data.payload);
-
-              if (data.payload.mano && Array.isArray(data.payload.mano)) {
-                const cardsWithIds = data.payload.mano.map((card, index) => ({
-                  id: card.id || 1000 + index,
-                  title: card.nombre || card.title,
-                  type: card.tipo || "Unknown",
-                }));
-                setLocalPlayerCards(cardsWithIds);
-              }
-            }
-            break;
-
-          // FIXED: Add back jugador_conectado handling
-          case "jugador_conectado":
-            if (data.game?.jugador_id) {
-              const jugadorId = data.game.jugador_id;
-              console.log(
-                "[GameStateProvider] Processing jugador_conectado for:",
-                jugadorId
-              );
-
-              // Only add if we don't already have this player
-              const existingPlayer = ordenTurnos.find(
-                (p) => p.id === jugadorId
-              );
-              if (!existingPlayer) {
-                const playerInfo = await fetchPlayerInfo(jugadorId);
-                setOrdenTurnos((prev) => {
-                  console.log("[GameStateProvider] Adding player:", playerInfo);
-                  return [...prev, playerInfo];
-                });
-              } else {
-                console.log(
-                  "[GameStateProvider] Player already exists:",
-                  jugadorId
-                );
-              }
-            }
-            break;
-
-          case "turno_terminado":
-            console.log("[GameStateProvider] Turno terminado");
-            if (data.payload) {
-              setGameState((prev) => ({
-                ...prev,
-                turno_actual_id: data.payload.turno_actual_id,
-                // Update any other game state from payload
-                ...data.payload,
-              }));
-              console.log(
-                "[GameStateProvider] Nuevo turno:",
-                data.payload.turno_actual_id
-              );
-            }
-            break;
-
-          // FIXED: Handle turn skipping response
-          case "salto_turno":
-          case "turno_saltado":
-            console.log("[GameStateProvider] Turno saltado");
-            if (data.payload) {
-              setGameState((prev) => ({
-                ...prev,
-                turno_actual_id: data.payload.turno_actual_id,
-                ...data.payload,
-              }));
-              console.log(
-                "[GameStateProvider] Nuevo turno después de saltar:",
-                data.payload.turno_actual_id
-              );
-            }
-            break;
-
-          case "actualizacion":
-            if (data.payload) {
-              setGameState(data.payload);
-            } else {
-              console.error("[GameStateProvider] No payload in actualizacion");
-            }
-            break;
-
-          case "error":
-            console.error(
-              "[GameStateProvider] Game error:",
-              data.payload?.mensaje || data.mensaje
-            );
-            break;
-
-          default:
-            console.log("[GameStateProvider] Unhandled event:", data.evento);
-            break;
-        }
-      } catch (error) {
-        console.error("[GameStateProvider] Error parsing message:", error);
-      }
-    };
-
-    ws.onclose = () => {
-      console.log("[GameStateProvider] WebSocket connection closed");
-      setIsConnected(false);
-    };
-
-    ws.onerror = (error) => {
-      console.error("[GameStateProvider] WebSocket error:", error);
-      setIsConnected(false);
-    };
-
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close();
-      }
-    };
-  }, [partidaId, localPlayerId]);
-
-  // FIXED: Add back mock data fallback
-  useEffect(() => {
-    let mockTimeout;
-
-    if (isConnected && ordenTurnos.length === 0) {
-      mockTimeout = setTimeout(() => {
-        console.log(
-          "[GameStateProvider] No real players received, using mock data"
-        );
-
-        // Use simple mock data based on the working browser session
-        const mockPlayers = [
-          {
-            id: 4,
-            nombre: "Sergio",
-            fecha_nacimiento: "2000-03-03",
-            secretos: [false, false, false],
-            cards: 4 === localPlayerId ? localPlayerCards : [],
-          },
-          {
-            id: 5,
-            nombre: "El Cuate",
-            fecha_nacimiento: "2005-09-14",
-            secretos: [false, false, false],
-            cards: 5 === localPlayerId ? localPlayerCards : [],
-          },
-          {
-            id: 6,
-            nombre: "Flores",
-            fecha_nacimiento: "2003-09-15",
-            secretos: [false, false, false],
-            cards: 6 === localPlayerId ? localPlayerCards : [],
-          },
-        ];
-
-        setOrdenTurnos(mockPlayers);
-
-        // Set initial game state if not already set
-        if (!gameState.turno_actual_id) {
-          setGameState((prev) => ({
-            ...prev,
-            turno_actual_id: localPlayerId || 6,
-            mazo_restante: 50,
-          }));
-        }
-      }, 3000);
-    }
-
-    return () => {
-      if (mockTimeout) clearTimeout(mockTimeout);
-    };
-  }, [isConnected, ordenTurnos.length, localPlayerId]);
-
-  const sendGameAction = (action) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(
-        JSON.stringify({
-          ...action,
-          jugador_id: localPlayerId,
-        })
-      );
-      return true;
-    }
-    return false;
-  };
-
-  const handleDescartar = () => {
-    if (!sendGameAction({ tipo: "descartar_carta" })) {
-      //recordar cambiar jugar_carta por descartar_carta en todas partes
-      console.log("[MOCK] descartar carta ejecutado");
-    }
-  };
-
-  const handleSaltarTurno = () => {
-    if (!sendGameAction({ tipo: "saltar_turno" })) {
-      console.log("[MOCK] Saltar turno ejecutado");
-    }
-  };
-
-  const handleTerminarTurno = () => {
-    if (!sendGameAction({ tipo: "terminar_turno" })) {
-      console.log("[MOCK] Terminar turno ejecutado");
-    }
-  };
-
+  // esto es un dict para consultar que imagen tiene que mostrar cada carta
+  // formas de hacerlo:
+  // 1) con dict, llaves con strings, pero es menos eficiente ?  igual son pocas cartas, debe tener algun cache?
+  // 2) con array, mas eficiente ? pero requiere decidir los id unicos para cada carta
   const [cardPictures, setCardPictures] = useState({
     help: card_00,
     card_back: card_01,
     murder_escapes: card_02,
-    youre_the_murderer: card_03,
-    varios: card_04,
-    secret_front: card_05,
-    secret_back: card_06,
-    hercule_poirot: card_07,
-    miss_marple: card_08,
-    mr_satterthwaite: card_09,
-    detective_pyne: card_10,
-    detective_brent: card_11,
-    detective_tommyberesford: card_12,
-    detective_tuppenceberesford: card_13,
-    detective_quin_wildcard: card_14,
-    detective_oliver: card_15,
+    harley_quin_wildcard: card_14,
+    ariadne_oliver: card_15,
     not_so_fast: card_16,
     cards_off_the_table: card_17,
     another_victim: card_18,
@@ -430,64 +76,142 @@ const GameStateProvider = ({ children }) => {
     look_into_the_ashes: card_20,
     card_trade: card_21,
     and_then_there_was_one_more: card_22,
-    delay_the_murderer_space: card_23,
-    early_train: card_24,
+    delay_the_murderers_space: card_23,
+    early_train_to_paddington: card_24,
     point_your_suspicions: card_25,
     blackmailed: card_26,
-    faux_pas: card_27,
+    social_faux_pass: card_27,
   });
 
-  const [discardPileCards, setDiscardPileCards] = useState([]);
-
+  // Función para simular el robo de una carta del mazo
   const drawCardFromDeck = (existingCards) => {
-    const remainingCards = Object.keys(cardPictures).filter((key) => {
-      const cardId = parseInt(key.split("_")[1]);
-      return !existingCards.some((card) => card.id === cardId);
-    });
+    // Filtramos las claves que NO están en la lista de excluidas
+    const availableKeys = Object.keys(cardPictures).filter(
+      (key) => !EXCLUDED_CARD_KEYS.includes(key)
+    );
+    const randomKey =
+      availableKeys[Math.floor(Math.random() * availableKeys.length)];
 
-    if (remainingCards.length === 0) {
-      return null;
-    }
-
-    const randomCardKey =
-      remainingCards[Math.floor(Math.random() * remainingCards.length)];
-    const cardId = parseInt(randomCardKey.split("_")[1]);
+    // Genera un ID realmente único
+    let newId;
+    do {
+      newId = Date.now() + Math.floor(Math.random() * 10000);
+    } while (existingCards.some((card) => card.id === newId));
 
     return {
-      id: cardId,
-      title: randomCardKey,
-      type: "Unknown",
+      id: newId,
+      title: randomKey,
+      type: "Simulated",
     };
   };
 
+  //Funcion para seleccion/deseleccionar una carta
   const toggleCardSelection = (cardId) => {
-    setSelectedCardIds((prevSelected) => {
-      if (prevSelected.includes(cardId)) {
-        return prevSelected.filter((id) => id !== cardId);
+    setSelectedCardIds((prevIds) => {
+      if (prevIds.includes(cardId)) {
+        return prevIds.filter((id) => id !== cardId);
       } else {
-        return [...prevSelected, cardId];
+        return [...prevIds, cardId];
       }
     });
   };
 
+  //Funcion principal para descartar y reponer(descarte ordenado)
   const discardSelectedCards = () => {
-    setDiscardPileCards((prev) => [
-      ...prev,
-      ...localPlayerCards.filter((card) => selectedCardIds.includes(card.id)),
-    ]);
-    setLocalPlayerCards((prev) =>
-      prev.filter((card) => !selectedCardIds.includes(card.id))
-    );
+    if (selectedCardIds.length === 0) return;
+
+    // Obtener las cartas a descartar EN ORDEN DE SELECCIÓN
+    const cardsToDiscard = selectedCardIds
+      .map((id) => localPlayerCards.find((card) => card.id === id))
+      .filter(Boolean); // Filtramos por si acaso
+
+    // Mover las cartas descartadas a la pila de descarte
+    setDiscardPileCards((prevDiscardPile) => {
+      // El orden en selectedCardIds es el orden en que se descartaron.
+      return [
+        ...prevDiscardPile,
+        // Las cartas descartadas se añaden en el orden de selección (selectedCardIds)
+        ...cardsToDiscard.map((c) => ({ title: c.title })),
+      ];
+    });
+
+    // Actualizar la mano del jugador
+    setLocalPlayerCards((prevHand) => {
+      const cardsToKeep = prevHand.filter(
+        (card) => !selectedCardIds.includes(card.id)
+      );
+      let newHand = [...cardsToKeep];
+      const cardsToDrawCount = cardsToDiscard.length;
+      let currentDeckCount = TOTAL_CARDS - discardPileCards.length;
+
+      // Reponer del mazo (simulado) hasta completar la mano
+      for (let i = 0; i < cardsToDrawCount; i++) {
+        // Verifica que haya cartas disponibles para robar
+        if (currentDeckCount > 0) {
+          // Pasamos la mano actual para asegurar que el ID de la nueva carta sea único
+          newHand.push(drawCardFromDeck(newHand));
+          currentDeckCount--;
+        } else {
+          break;
+        }
+      }
+      return newHand;
+    });
+
+    // Limpiar las cartas seleccionadas
     setSelectedCardIds([]);
   };
 
-  const deckCount =
-    gameState?.mazo_restante || TOTAL_CARDS - discardPileCards.length;
+  const handleDescartar = () => {
+    console.log("[GameStateProvider] Descartar carta clicked");
+    // For now, just call the existing discardSelectedCards function
+    discardSelectedCards();
+  };
+
+  const handleSaltarTurno = (ws) => {
+    console.log("[GameStateProvider] Saltar turno clicked");
+
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      console.error("[GameStateProvider] WebSocket no está conectado");
+      return;
+    }
+
+    // Enviar acción al backend por WebSocket
+    ws.send(
+      JSON.stringify({
+        tipo: "saltar_turno",
+      })
+    );
+
+    console.log("[GameStateProvider] Mensaje 'saltar_turno' enviado por WS");
+  };
+
+  const handleTerminarTurno = (ws) => {
+    console.log("[GameStateProvider] Terminar turno clicked");
+
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      console.error("[GameStateProvider] WebSocket no está conectado");
+      return;
+    }
+
+    // Enviar acción al backend por WebSocket
+    ws.send(
+      JSON.stringify({
+        tipo: "terminar_turno",
+      })
+    );
+
+    console.log("[GameStateProvider] Mensaje 'terminar_turno' enviado por WS");
+  };
+
+  const deckCount = TOTAL_CARDS - discardPileCards.length;
 
   const contextValue = {
     localPlayerCards,
+    setLocalPlayerCards,
     cardPictures,
     discardPileCards,
+    setDiscardPileCards,
     discardSelectedCards,
     toggleCardSelection,
     selectedCardIds,
@@ -495,16 +219,14 @@ const GameStateProvider = ({ children }) => {
     deckCount,
 
     gameState,
+    setGameState,
     ordenTurnos,
-    isConnected,
+    setOrdenTurnos,
     localPlayerId,
-    playersCache,
-
+    setLocalPlayerId,
     handleDescartar,
     handleSaltarTurno,
     handleTerminarTurno,
-    sendGameAction,
-    fetchPlayerInfo, // Add this back to context
   };
 
   return (
