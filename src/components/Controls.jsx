@@ -2,9 +2,8 @@ import React, { useContext } from "react";
 import { GameStateContext } from "../context/GameStateContext"; 
 import "./Controls.css";
 
-export default function Controls() {
+export default function Controls({ onDiscard, onEndTurn, canEndTurn }) {
     const { 
-        discardSelectedCards, 
         selectedCardIds,      
         discardPileCards,     
         deckCount, 
@@ -33,10 +32,19 @@ export default function Controls() {
         <div className="controls">
             <button 
                 className="btn secondary"
-                onClick={discardSelectedCards}
+                onClick={onDiscard}
                 disabled={isDisabled}
             >
                 {buttonText}
+            </button>
+            {/*<button className="btn medium">Saltar turno</button>*/}
+            <button className="btn primary"
+                onClick={onEndTurn}
+                // 'disabled={!true}' es 'disabled=false' (habilitado)
+                // 'disabled={!false}' es 'disabled=true' (deshabilitado)
+                disabled={!canEndTurn}
+            > 
+                Finalizar turno
             </button>
         </div>
     );

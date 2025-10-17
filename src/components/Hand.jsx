@@ -8,8 +8,6 @@ export default function Hand({ cards = [] }) {
   // Obtener funciones y estados del contexto
   const { toggleCardSelection, selectedCardIds } = useContext(GameStateContext); 
   
-  // Lógica de relleno de mano
-
   // Crear cartas de relleno con IDs ÚNICOS y temporales
   const cardsToFill = Array(Math.max(0, 6 - cards.length)).fill(0).map((_, index) => ({ 
     title: "?",
@@ -28,7 +26,7 @@ export default function Hand({ cards = [] }) {
         return (
           <Card 
             key={cardId || i}
-            cardname={c.title} 
+            cardname={!isFiller ? c.title : null}
             faceUp={true}
             cardId={cardId}
             isSelectable={!isFiller} 

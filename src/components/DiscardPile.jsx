@@ -1,5 +1,3 @@
-// DiscardPile.jsx (AJUSTADO PARA EL NUEVO COMPONENTE CARD)
-
 import React from "react";
 import "./DiscardPile.css";
 import Card from "./Card"; 
@@ -9,8 +7,8 @@ export default function DiscardPile({ cards = [], currentCount = 0, totalCount =
   const topCard = cards.length > 0 ? cards[cards.length - 1] : null;
   const countText = `${currentCount} / ${totalCount}`;
 
-  // 1. EXTRAER LA CLAVE: Usamos 'title' de GameScreen.jsx como cardname
-  const cardKeyName = topCard ? topCard.title : null; // Asumimos que 'title' es la clave
+  //consumo la carta con el nombre del campo que viene desde backend 
+  const cardKeyName = topCard ? topCard.nombre : null;
 
   return (
     <div className="discard-pile">

@@ -11,6 +11,12 @@ const Card = ({
     onSelect              
 }) => {
 
+  if (!cardname) {
+    //Se establece una className para determinar que la carta
+    //fue seleccionada y descartada(efecto de desaparicion)
+    return <div className="card-spacer" />;
+  }
+
   const { cardPictures } = useContext(GameStateContext);
   const [isHovered, setIsHovered] = useState(false);
   const [size, setSize] = useState("small");
@@ -75,7 +81,6 @@ const Card = ({
     }
   };
   
-  // --- RENDERING ---
   return (
     <div 
       // Pasar las props de selección al cálculo de clases

@@ -43,11 +43,12 @@ const EXCLUDED_CARD_KEYS = [
     "varios" //caras de los secretos
 ];
 
-const GameStateProvider = ({ children }) => {
+const GameStateProvider = ({ children,  }) => {
 
   const [localPlayerCards, setLocalPlayerCards] = useState([]); 
   const [selectedCardIds, setSelectedCardIds] = useState([]); // Estado de selección
-
+  const [deckCount, setDeckCount] = useState(TOTAL_CARDS);
+  
   // esto es un dict para consultar que imagen tiene que mostrar cada carta
   // formas de hacerlo:
   // 1) con dict, llaves con strings, pero es menos eficiente ?  igual son pocas cartas, debe tener algun cache?
@@ -85,27 +86,6 @@ const GameStateProvider = ({ children }) => {
 
   const [discardPileCards, setDiscardPileCards] = useState([]);
 
-  // Función para simular el robo de una carta del mazo
-  const drawCardFromDeck = (existingCards) => {
-    // Filtramos las claves que NO están en la lista de excluidas
-    const availableKeys = Object.keys(cardPictures).filter(key => 
-      !EXCLUDED_CARD_KEYS.includes(key)
-    );
-    const randomKey = availableKeys[Math.floor(Math.random() * availableKeys.length)];
-        
-    // Genera un ID realmente único
-    let newId;
-    do {
-        newId = Date.now() + Math.floor(Math.random() * 10000);
-    } while (existingCards.some(card => card.id === newId));
-
-    return { 
-      id: newId,
-      title: randomKey, 
-      type: "Simulated" 
-    };
-  };
-
   //Funcion para seleccion/deseleccionar una carta
   const toggleCardSelection = (cardId) => {
     setSelectedCardIds(prevIds => {
@@ -117,63 +97,26 @@ const GameStateProvider = ({ children }) => {
     });
   };
 
-  //Funcion principal para descartar y reponer(descarte ordenado)
-  const discardSelectedCards = () => {
-    if (selectedCardIds.length === 0) return;
-
-    // Obtener las cartas a descartar EN ORDEN DE SELECCIÓN
-    const cardsToDiscard = selectedCardIds.map(id => 
-        localPlayerCards.find(card => card.id === id)
-    ).filter(Boolean); // Filtramos por si acaso
-
-    // Mover las cartas descartadas a la pila de descarte
-    setDiscardPileCards(prevDiscardPile => {
-        // El orden en selectedCardIds es el orden en que se descartaron.
-        return [
-            ...prevDiscardPile,
-            // Las cartas descartadas se añaden en el orden de selección (selectedCardIds)
-            ...cardsToDiscard.map(c => ({ title: c.title })) 
-        ];
-    });
-
-    // Actualizar la mano del jugador
-    setLocalPlayerCards(prevHand => {
-        const cardsToKeep = prevHand.filter(card => !selectedCardIds.includes(card.id));
-        let newHand = [...cardsToKeep];
-        const cardsToDrawCount = cardsToDiscard.length;
-        let currentDeckCount = TOTAL_CARDS - discardPileCards.length;
-        
-        // Reponer del mazo (simulado) hasta completar la mano
-        for (let i = 0; i < cardsToDrawCount; i++) {
-            // Verifica que haya cartas disponibles para robar
-            if (currentDeckCount > 0) {
-                // Pasamos la mano actual para asegurar que el ID de la nueva carta sea único
-                newHand.push(drawCardFromDeck(newHand));
-                currentDeckCount--;
-            } else {
-                break;
-            }
-        }
-        return newHand;
-    });
-            
-    // Limpiar las cartas seleccionadas
+  const clearSelectedCards = () => {
     setSelectedCardIds([]);
-  };
+  }
 
-  const deckCount = TOTAL_CARDS - discardPileCards.length;
-
-  const contextValue = { 
+  const contextValue = {
+    //cartas y descarte
     localPlayerCards,
-    setLocalPlayerCards, 
-    cardPictures,
+    setLocalPlayerCards,
     discardPileCards,
     setDiscardPileCards,
-    discardSelectedCards,  
-    toggleCardSelection,   
-    selectedCardIds,       
-    TOTAL_CARDS,
-    deckCount
+    //seleccion de cartas
+    selectedCardIds,
+    setSelectedCardIds,
+    //mazo  
+    deckCount,
+    setDeckCount,
+    //resto
+    cardPictures,
+    toggleCardSelection,
+    TOTAL_CARDS
   };
 
   return (

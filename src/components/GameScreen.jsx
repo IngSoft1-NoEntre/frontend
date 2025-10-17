@@ -41,8 +41,11 @@ export default function GameScreen({ players }) {
     localPlayerCards,
     discardPileCards,
     deckCount,
+    setDeckCount,
     TOTAL_CARDS: TOTAL_CARDS_CONTEXT,
-    cardPictures
+    cardPictures,
+    selectedCardIds,
+    setSelectedCardIds
   } = useContext(GameStateContext);
 
 // ESTADOS PRINCIPALES (No relacionados con cartas)
@@ -51,6 +54,7 @@ export default function GameScreen({ players }) {
   const [localPlayerId, setLocalPlayerId] = useState(null);
   const [turnoActualId, setTurnoActualId] = useState(null);
   const [localPlayerSecrets, setLocalPlayerSecrets] = useState([true, true, true]); 
+  const [hasDiscarded, setHasDiscarded] = useState(false);
 
   // ESTADOS SECUNDARIOS
   const [loading, setLoading] = useState(true);
@@ -87,44 +91,62 @@ export default function GameScreen({ players }) {
             
             socket.onmessage = (event) => {
                 const dataWS = JSON.parse(event.data);
-                console.log("Mensaje WS recibido:", dataWS);
+                //console.log("Mensaje WS recibido:", dataWS);
 
+                
+                // Manejo de conexión
                 if (dataWS.evento === "conectado") {
                     const localId = dataWS.jugador_id;
                     setLocalPlayerId(localId); 
-                    setGamePlayers(data.orden_turnos.map(p => mapPlayerFromBackend(p, localId)));
+                    setGamePlayers(dataWS.orden_turnos.map(p => mapPlayerFromBackend(p, localId)));
                     setLoading(false);
+                    return; // Importante para evitar procesar como estado_actualizado
                 }
                 
-                if (dataWS.evento === "iniciada" || dataWS.evento === "estado_actualizado" || dataWS.evento === "actualizacion") {
-                    const payload = dataWS.payload || {};
+                if (dataWS.evento === "iniciada" || dataWS.evento === "actualizacion" || dataWS.evento === "estado_actualizado") {
+                  console.log("Payload recibido (simplificado):", dataWS);
+    
+                  // 1. CONFÍA en dataWS.payload, que es lo que envían tus logs.
+                  const payload = dataWS.payload; 
 
-                    // Obtener la mano del backend
-                    const rawMano = payload.mano || [];
+                  // Si por alguna razón crítica no viene, usamos un objeto vacío para evitar crashes.
+                  if (!payload) {
+                    console.error(`Evento ${dataWS.evento} recibido sin payload.`);
+                  return; // Salir si no hay datos.
+                  }
+    
+                  // 2. OBTENER Y MAPEAR LA MANO
+                  const rawMano = payload.mano || [];
 
-                    // Mapear para asegurar que tengan la clave 'title'
-                    const mappedMano = rawMano.map(card => ({
-                      id: card.id,
-                      title: card.nombre || "card_back",
-                      tipo: card.tipo,
-                      zona: card.zona
-                    }));
-                    
-                    // USAR SETTERS DEL CONTEXTO PARA CARTAS
-                    setLocalPlayerCards(mappedMano);
-                    setDiscardPileCards(payload.restante || []); // AQUI CAMBIE: payload.descarte POR payload.restante para que incialice en 0 el discarPile
-                    
-                    //  ACTUALIZAR SECRETOS LOCALES
-                    if (payload.secretos_local) { 
-                        setLocalPlayerSecrets(payload.secretos_local);
-                    }
-                    
-                    setTurnoActualId(payload.turno_actual_id);
+                  const mappedMano = rawMano.map(card => ({
+                    id: card.id,
+                    title: card.nombre || "card_back", 
+                    tipo: card.tipo,
+                    zona: card.zona
+                  }));
+    
+                  // 3. USAR SETTERS DEL CONTEXTO PARA CARTAS Y ESTADO
+                  setLocalPlayerCards(mappedMano); // Esto repone la mano
+
+                  setDiscardPileCards(payload.descarte || []); // Esto actualiza el descarte
+                
+                  setDeckCount(payload.mazo_restante); // Esto actualiza el mazo
+    
+                  setLocalPlayerId(payload.jugador_id || localPlayerId);
+
+                  // ACTUALIZAR SECRETOS LOCALES
+                  if (payload.secretos_local) { 
+                    setLocalPlayerSecrets(payload.secretos_local.map(s => Boolean(s)));
+                  }
+
+                  setTurnoActualId(payload.turno_actual_id);
+                }
+                  // Lógica específica para "cartas_descartadas" o "jugador_conectado"
+                else if (dataWS.evento === "cartas_descartadas" || dataWS.evento === "jugador_conectado") {
+                  // Solo loguear o manejar eventos mínimos que no requieren actualizar el estado completo.
+                  console.log(`Notificación recibida: ${dataWS.evento}`);
                 }
             };
-            
-            socket.onclose = () => console.log("Conexión WS de juego cerrada.");
-
         } catch (err) {
             console.error("FALLO CRÍTICO EN CARGA DE PARTIDA:", err.message);
             setLoading(false);
@@ -136,7 +158,7 @@ export default function GameScreen({ players }) {
     
     // Cleanup del useEffect
     return () => socket?.close(); 
-  }, [partidaId, token, setLocalPlayerCards, setDiscardPileCards]);
+  }, [partidaId, token, setLocalPlayerCards, setDiscardPileCards,setDeckCount]);
 
   // --- CÁLCULO DE ESTADOS DERIVADOS ---
   // deckCount y discardPileCards vienen del Context
@@ -212,6 +234,59 @@ export default function GameScreen({ players }) {
   const closeGameOverModal = () => setIsGameOverModalOpen(false);
   const openSecretModal = (data) => { if (data?.revealed) setOpenSecret(data); };
   const closeSecretModal = () => setOpenSecret(null);
+
+  // Función para enviar la acción de descarte por WS
+  const handleDiscard = () => {
+    if (selectedCardIds.length === 0 || !ws) return;
+
+    // Crear el payload con los IDs de las cartas seleccionadas
+    const discardPayload = {
+      tipo: "descartar_carta",
+      cartas: selectedCardIds // Se envían los IDs de las cartas
+    };
+    try {
+      ws.send(JSON.stringify(discardPayload));
+      // NOTA: El backend actualizará el estado (mano, descarte, mazo) y lo enviará de vuelta
+      // a través del evento "estado_actualizado" o similar.
+      setHasDiscarded(true);
+      // Crea una nueva mano excluyendo los IDs seleccionados
+      // const newHand = localPlayerCards.filter(
+      //   (card) => !selectedCardIds.includes(card.id)
+      // );
+      //setLocalPlayerCards(newHand);
+      
+      // Limpiar la selección inmediatamente después de enviar para una mejor UX
+      // (asumimos que la acción será exitosa)
+      setSelectedCardIds([]); 
+
+    } catch (error) {
+      console.error("Error al enviar la acción de descarte:", error);
+    }
+  };
+
+const handleEndTurn = () => {
+    if (!ws) return;
+
+    if (!hasDiscarded) {
+        console.warn("Debe descartar al menos una vez antes de terminar el turno.");
+        return;
+    }
+
+    const endTurnPayload = {
+        tipo: "terminar_turno",
+    };
+
+    try {
+        ws.send(JSON.stringify(endTurnPayload));
+        // NOTA: El backend responderá con "estado_actualizado" que contendrá la mano repuesta
+        setHasDiscarded(false);
+    } catch (error) {
+        console.error("Error al enviar la acción de terminar turno:", error);
+    }
+};
+// ...
+// Añadir handleEndTurn al componente Controls para que el botón esté activo.
+<Controls onDiscard={handleDiscard} onEndTurn={handleEndTurn} canEndTurn={hasDiscarded}/>
 
   const secretFrontUrl = cardPictures["varios"];
   const secretBackUrl = cardPictures["secret_back"];
@@ -295,7 +370,10 @@ export default function GameScreen({ players }) {
           </div>
         </div>
         <SecretModal item={openSecret} onClose={closeSecretModal} />
-        <Controls />
+        <Controls
+          onDiscard={handleDiscard}
+          onEndTurn={handleEndTurn}
+          canEndTurn={hasDiscarded} />
       </div>
       {isGameOverModalOpen && (
         <FinishGameModal

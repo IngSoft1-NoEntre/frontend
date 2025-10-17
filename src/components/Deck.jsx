@@ -4,8 +4,7 @@ import DeckPile from "./DeckPile";
 import DiscardPile from "./DiscardPile";
 
 //Representar el contenedor de los mazos en el juego.
-export default function Deck({ discardCards = [], deckCount = 64, totalCards = 64 }) {
-
+export default function Deck({ discardCards = [], deckCount, totalCards }) {
   const discardCount = discardCards.length;
   
   return (

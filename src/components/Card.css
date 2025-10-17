@@ -15,6 +15,13 @@
   justify-content: center;
 }
 
+.card-spacer {
+    width: 100px;
+    height: 150px;
+    margin: 5px;
+    visibility: hidden;
+}
+
 /* Estilo de la imagen */
 .cardframe .cardpic {
   width: 100%;
