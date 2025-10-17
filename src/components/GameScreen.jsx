@@ -26,7 +26,7 @@ const mapPlayerFromBackend = (p, localId) => ({
   nombre: p.nombre,
   secretos: [false, false, false],
   isLocal: p.id === localId,
-  cards: [], // Add cards array for TurnoIndicator
+  cards: [], // TurnoIndicator agregará las cartas luego
 });
 
 export default function GameScreen({ players }) {
@@ -41,7 +41,7 @@ export default function GameScreen({ players }) {
     deckCount,
     TOTAL_CARDS: TOTAL_CARDS_CONTEXT,
     cardPictures,
-    // NEW context values for TurnoIndicator
+    // Nuevos valores de contexto para TurnoIndicator
     gameState,
     setGameState,
     ordenTurnos,
@@ -53,7 +53,7 @@ export default function GameScreen({ players }) {
     handleTerminarTurno,
   } = useContext(GameStateContext);
 
-  // SIMPLIFIED STATES (removing duplicates that are now in context)
+  // Estados simplificados (sin duplicados en contexto)
   const [ws, setWs] = useState(null);
   const [gamePlayers, setGamePlayers] = useState([]);
   const [localPlayerSecrets, setLocalPlayerSecrets] = useState([
@@ -62,7 +62,10 @@ export default function GameScreen({ players }) {
     true,
   ]);
 
-  // ESTADOS SECUNDARIOS
+  // NUEVO: Guardar el mazo inicial
+  const [initialDeckCount, setInitialDeckCount] = useState(null);
+
+  // Estados secundarios
   const [loading, setLoading] = useState(true);
   const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
   const [openSecret, setOpenSecret] = useState(null);
@@ -118,6 +121,11 @@ export default function GameScreen({ players }) {
             setGamePlayers(jugadoresIniciales);
             setOrdenTurnos(jugadoresIniciales);
             setLoading(false);
+            console.log("[GameScreen] LocalPlayerId:", localId);
+            console.log(
+              "[GameScreen] Jugadores iniciales:",
+              jugadoresIniciales
+            );
           }
           if (
             dataWS.evento === "iniciada" ||
@@ -128,12 +136,28 @@ export default function GameScreen({ players }) {
 
             console.log("[GameScreen] Procesando evento:", dataWS.evento);
             console.log("[GameScreen] Payload mano:", payload.mano);
+            console.log("[GameScreen] Mazo restante:", payload.mazo_restante);
+
+            // GUARDAR EL VALOR INICIAL DEL MAZO (solo la primera vez)
+            if (
+              initialDeckCount === null &&
+              payload.mazo_restante !== undefined
+            ) {
+              setInitialDeckCount(payload.mazo_restante);
+              console.log(
+                "[GameScreen] Mazo inicial guardado:",
+                payload.mazo_restante
+              );
+            }
 
             // UPDATE CONTEXT gameState
             setGameState((prev) => ({
               ...prev,
               turno_actual_id: payload.turno_actual_id || prev.turno_actual_id,
-              mazo_restante: payload.mazo_restante || prev.mazo_restante,
+              mazo_restante:
+                payload.mazo_restante !== undefined
+                  ? payload.mazo_restante
+                  : prev.mazo_restante,
               acciones_disponibles:
                 payload.acciones_disponibles || prev.acciones_disponibles,
             }));
@@ -163,6 +187,7 @@ export default function GameScreen({ players }) {
                   : player
               )
             );
+            console.log("[GameScreen] OrdenTurnos actualizado:", ordenTurnos);
 
             /*setOrdenTurnos((prev) => {
               const updated = prev.map((player) =>
@@ -182,6 +207,24 @@ export default function GameScreen({ players }) {
             }
           }
 
+          // PROCESAR EVENTO DE ERROR - ESPECIALMENTE "No hay mas cartas en el mazo"
+          if (dataWS.evento === "error") {
+            const payload = dataWS.payload || {};
+            console.error("[GameScreen] Error del backend:", payload.mensaje);
+
+            // Si el error es por falta de cartas, actualizar el mazo a 0 y abrir el modal
+            if (payload.mensaje?.includes("No hay mas cartas en el mazo")) {
+              console.log(
+                "[GameScreen] Mazo agotado, abriendo modal de fin de juego"
+              );
+              setGameState((prev) => ({
+                ...prev,
+                mazo_restante: 0,
+              }));
+              setIsGameOverModalOpen(true);
+            }
+          }
+
           // PROCESAR EVENTOS DE SALTO DE TURNO (nombre correcto del backend)
           if (dataWS.evento === "salto_turno") {
             console.log(
@@ -198,7 +241,7 @@ export default function GameScreen({ players }) {
             // No hacer nada aquí, el evento 'actualizacion' siguiente tiene la data
           }
 
-          // Manejo consolidado de eventos que actualizan estado/mano/descarte
+          /* Manejo consolidado de eventos que actualizan estado/mano/descarte
           if (
             dataWS.evento === "turno_saltado" ||
             dataWS.evento === "turno_terminado" ||
@@ -249,7 +292,7 @@ export default function GameScreen({ players }) {
             if (payload.descarte) {
               setDiscardPileCards(payload.descarte);
             }
-          }
+          }*/
         };
 
         socket.onclose = () => console.log("Conexión WS de juego cerrada.");
@@ -274,7 +317,7 @@ export default function GameScreen({ players }) {
   ]);
 
   // USE gameState from context instead of local turnoActualId
-  const isDeckEmpty = deckCount <= 0;
+  const isDeckEmpty = gameState.mazo_restante <= 0;
 
   // DISTRIBUCIÓN DE JUGADORES
   const list = gamePlayers.filter(Boolean);
@@ -370,8 +413,8 @@ export default function GameScreen({ players }) {
         <div className="center-area">
           <Deck
             discardCards={discardPileCards}
-            deckCount={deckCount}
-            totalCards={TOTAL_CARDS_CONTEXT}
+            deckCount={gameState.mazo_restante}
+            totalCards={initialDeckCount || gameState.mazo_restante}
           />
         </div>
 
