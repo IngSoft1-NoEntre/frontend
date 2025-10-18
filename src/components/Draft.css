@@ -1,0 +1,52 @@
+.draft-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  /* ✅ ESCALAR TODO EL DRAFT AL 70% */
+  transform: scale(0.7);
+  transform-origin: center;
+}
+
+.draft-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.draft-cards {
+  display: flex;
+  gap: 8px; /*reducido de 14*/
+  align-items: center;
+  justify-content: center;
+}
+
+.draft-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 10px;
+  position: relative;
+}
+
+.draft-card:hover
+.draft-card:hovered {
+  transform: translateY(-8px) scale(1.15);
+  filter: brightness(1.2);
+  z-index: 50;
+}
+
+.draft-empty {
+  width: 110px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 18px;
+  background: rgba(0, 0, 0, 0.2);
+}

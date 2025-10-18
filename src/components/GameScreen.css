@@ -59,6 +59,17 @@
   justify-content: center;
 }
 
+/* ÁREA DEL DRAFT - Entre mazo y mano */
+.draft-area {
+  position: absolute;
+  left: 50%;
+  bottom: 220px; /* ajustado de 240 -Justo encima de la mano (que está en bottom: 100px) */
+  transform: translateX(-50%);
+  z-index: 28; /* Entre center-area (25) y local-area (30) */
+  display: flex;
+  justify-content: center;
+}
+
 /* area local: mano y secretos */
 .local-area {
   position: absolute;

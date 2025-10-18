@@ -44,12 +44,15 @@ const EXCLUDED_CARD_KEYS = [
 ];
 
 const GameStateProvider = ({ children }) => {
-  // EXISTING state
+  // estados existentes
   const [localPlayerCards, setLocalPlayerCards] = useState([]);
   const [selectedCardIds, setSelectedCardIds] = useState([]);
   const [discardPileCards, setDiscardPileCards] = useState([]);
 
-  // NEW state for TurnoIndicator
+  // AGREGAR ESTADO PARA DRAFT
+  const [draftCards, setDraftCards] = useState([]);
+
+  // Nuevo estado para TurnoIndicator
   const [gameState, setGameState] = useState({
     turno_actual_id: null,
     mazo_restante: TOTAL_CARDS,
@@ -229,7 +232,8 @@ const GameStateProvider = ({ children }) => {
     setSelectedCardIds,
     TOTAL_CARDS,
     deckCount,
-
+    draftCards,
+    setDraftCards,
     gameState,
     setGameState,
     ordenTurnos,

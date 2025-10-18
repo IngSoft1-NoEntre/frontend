@@ -4,6 +4,7 @@
   gap: 14px;
   align-items: center;
   justify-content: center;
+  transform: scale(0.7);
 }
 
 .deck-pile-game,

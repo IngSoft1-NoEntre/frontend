@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { GameStateContext } from "../context/GameStateContext";
 import "./GameScreen.css";
 import Deck from "./Deck";
+import Draft from "./Draft";
 import FinishGameModal from "./FinishGameModal";
 import SecretModal from "./SecretModal";
 import TurnoIndicator from "./TurnoIndicator";
@@ -27,6 +28,9 @@ export default function GameScreen({ players }) {
     discardPileCards,
     selectedCardIds,
     setSelectedCardIds,
+    draftCards,
+    setDraftCards,
+
     // AGREGAR ESTOS DEL CONTEXTO
     gameState,
     setGameState,
@@ -186,6 +190,26 @@ export default function GameScreen({ players }) {
 
             // ACTUALIZAR DESCARTE
             setDiscardPileCards(payload.descarte || []);
+
+            // ✅ PROCESAR DRAFT - IGUAL QUE LA MANO, SIMPLE
+            if (payload.estado_draft?.cartas_disponibles) {
+              const rawDraft = payload.estado_draft.cartas_disponibles;
+              const mappedDraft = rawDraft.map((card) => ({
+                id: card.id,
+                title: card.nombre || "card_back", // ✅ Usar 'title' como en la mano
+                nombre: card.nombre,
+                tipo: card.tipo,
+              }));
+
+              console.log(
+                "[GameScreen] Draft actualizado:",
+                mappedDraft.length,
+                "cartas"
+              );
+              setDraftCards(mappedDraft);
+            } else {
+              setDraftCards([]);
+            }
 
             // ACTUALIZAR SECRETOS
             if (payload.secretos) {
@@ -432,6 +456,10 @@ export default function GameScreen({ players }) {
             deckCount={gameState.mazo_restante}
             totalCards={initialDeckCount || TOTAL_CARDS_FIXED}
           />
+        </div>
+
+        <div className="draft-area">
+          <Draft cards={draftCards} />
         </div>
 
         <SecretModal item={openSecret} onClose={closeSecretModal} />
