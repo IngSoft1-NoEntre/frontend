@@ -226,6 +226,7 @@ const GameStateProvider = ({ children }) => {
     discardSelectedCards,
     toggleCardSelection,
     selectedCardIds,
+    setSelectedCardIds,
     TOTAL_CARDS,
     deckCount,
 
