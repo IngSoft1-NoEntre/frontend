@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { GameStateContext } from "../context/GameStateContext";
 import "./GameScreen.css";
@@ -40,7 +40,7 @@ export default function GameScreen({ players }) {
     hasSetSelectedCardIds: typeof setSelectedCardIds === "function",
     selectedCardIds,
     hasGameState: !!gameState,
-  }); // ✅ AGREGAR LOG PARA DEBUG
+  }); // AGREGAR LOG PARA DEBUG
 
   // ESTADOS LOCALES (no duplicar los del contexto)
   const [ws, setWs] = useState(null);
@@ -53,6 +53,13 @@ export default function GameScreen({ players }) {
   ]);
   const [hasDiscarded, setHasDiscarded] = useState(false);
   const [initialDeckCount, setInitialDeckCount] = useState(null);
+  // AGREGAR UNA REF PARA ACCEDER AL ESTADO ACTUAL DEL MAZO
+  const gameStateRef = useRef(gameState);
+
+  // MANTENER LA REF SINCRONIZADA
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
 
   // ESTADOS SECUNDARIOS
   const [loading, setLoading] = useState(true);
@@ -100,7 +107,7 @@ export default function GameScreen({ players }) {
             const localId = dataWS.jugador_id;
             setLocalPlayerId(localId);
 
-            // ✅ USAR dataWS.orden_turnos en lugar de data.orden_turnos
+            // USAR dataWS.orden_turnos en lugar de data.orden_turnos
             const jugadoresIniciales = (dataWS.orden_turnos || []).map((p) =>
               mapPlayerFromBackend(p, localId)
             );
@@ -131,7 +138,7 @@ export default function GameScreen({ players }) {
 
             console.log("[GameScreen] Procesando:", dataWS.evento);
 
-            // ✅ GUARDAR MAZO INICIAL (solo la primera vez)
+            // GUARDAR MAZO INICIAL (solo la primera vez)
             if (
               initialDeckCount === null &&
               payload.mazo_restante !== undefined
@@ -143,7 +150,7 @@ export default function GameScreen({ players }) {
               );
             }
 
-            // ✅ ACTUALIZAR CONTEXTO gameState
+            // ACTUALIZAR CONTEXTO gameState
             setGameState((prev) => ({
               ...prev,
               turno_actual_id: payload.turno_actual_id ?? prev.turno_actual_id,
@@ -233,7 +240,63 @@ export default function GameScreen({ players }) {
           }
         };
 
-        socket.onclose = () => console.log("[GameScreen] Conexión WS cerrada.");
+        socket.onclose = (event) => {
+          console.log("[GameScreen] WebSocket CERRADO:", {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean,
+            mazoRestante: gameStateRef.current.mazo_restante,
+          });
+
+          setWs(null);
+
+          // ✅ DETECTAR FIN DE PARTIDA POR MAZO AGOTADO
+          const mazoRestante = gameStateRef.current.mazo_restante;
+
+          if (mazoRestante !== null && mazoRestante <= 6) {
+            console.log(
+              "[GameScreen] 🏁 Partida finalizada: Mazo casi agotado o agotado"
+            );
+
+            setGameState((prev) => ({ ...prev, mazo_restante: 0 }));
+
+            setTimeout(() => {
+              setIsGameOverModalOpen(true);
+            }, 100);
+
+            return; // No intentar reconectar
+          }
+
+          // ✅ RECONECTAR SI EL CIERRE NO FUE NORMAL Y LA PARTIDA SIGUE ACTIVA
+          if (
+            event.code !== 1000 &&
+            event.code !== 1001 &&
+            isComponentMounted
+          ) {
+            console.log("[GameScreen] Reconectando en 2 segundos...");
+            setTimeout(() => {
+              if (isComponentMounted) {
+                console.log("[GameScreen] Reconectando...");
+
+                // Reconectar solo el WebSocket sin rehacer el fetch
+                const wsUrl = `ws://localhost:8000/ws/game/${partidaId}?token=${token}`;
+                const newSocket = new WebSocket(wsUrl);
+
+                newSocket.onopen = () => {
+                  console.log("[GameScreen] Reconexión exitosa");
+                  setWs(newSocket);
+                };
+
+                newSocket.onerror = (error) => {
+                  console.error("[GameScreen] Error en reconexión:", error);
+                };
+
+                newSocket.onmessage = socket.onmessage; // Reutilizar el handler
+                newSocket.onclose = socket.onclose; // Reutilizar el handler
+              }
+            }, 2000);
+          }
+        };
       } catch (err) {
         console.error("[GameScreen] Error crítico:", err.message);
         setLoading(false);
