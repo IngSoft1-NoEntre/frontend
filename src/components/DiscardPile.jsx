@@ -3,7 +3,7 @@ import "./DiscardPile.css";
 import Card from "./Card"; 
 
 //Representa el mazo descarte
-export default function DiscardPile({ cards = [], currentCount = 0, totalCount = 64 }) {
+export default function DiscardPile({ cards = [], currentCount = 0 , totalCount}) {
   const topCard = cards.length > 0 ? cards[cards.length - 1] : null;
   const countText = `${currentCount} / ${totalCount}`;
 

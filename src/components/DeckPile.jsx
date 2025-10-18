@@ -2,7 +2,7 @@ import React from "react";
 import "./DeckPile.css";
 
 //Representa el mazo regular
-export default function DeckPile({ currentCount = 64, totalCount = 64 }) {
+export default function DeckPile({ currentCount, totalCount = 45 }) {
   const countText = `${currentCount} / ${totalCount}`;
 
   return (

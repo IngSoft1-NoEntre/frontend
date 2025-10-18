@@ -53,13 +53,17 @@ export default function GameScreen({ players }) {
   const [gamePlayers, setGamePlayers] = useState([]); 
   const [localPlayerId, setLocalPlayerId] = useState(null);
   const [turnoActualId, setTurnoActualId] = useState(null);
-  const [localPlayerSecrets, setLocalPlayerSecrets] = useState([true, true, true]); 
   const [hasDiscarded, setHasDiscarded] = useState(false);
 
   // ESTADOS SECUNDARIOS
   const [loading, setLoading] = useState(true);
   const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
   const [openSecret, setOpenSecret] = useState(null);
+  const [localPlayerSecrets, setLocalPlayerSecrets] = useState([
+    { nombre: "varios" }, 
+    { nombre: "varios" }, 
+    { nombre: "varios" }
+  ]);
 
   useEffect(() => {
     if (!partidaId || !token) return;
@@ -134,9 +138,9 @@ export default function GameScreen({ players }) {
     
                   setLocalPlayerId(payload.jugador_id || localPlayerId);
 
-                  // ACTUALIZAR SECRETOS LOCALES
-                  if (payload.secretos_local) { 
-                    setLocalPlayerSecrets(payload.secretos_local.map(s => Boolean(s)));
+                  if (payload.secretos && Array.isArray(payload.secretos)) {
+                    // Almacena el objeto secreto directamente para usar su 'nombre' y renderizar la imagen
+                    setLocalPlayerSecrets(payload.secretos);
                   }
 
                   setTurnoActualId(payload.turno_actual_id);
@@ -264,7 +268,7 @@ export default function GameScreen({ players }) {
     }
   };
 
-const handleEndTurn = () => {
+  const handleEndTurn = () => {
     if (!ws) return;
 
     if (!hasDiscarded) {
@@ -283,10 +287,7 @@ const handleEndTurn = () => {
     } catch (error) {
         console.error("Error al enviar la acción de terminar turno:", error);
     }
-};
-// ...
-// Añadir handleEndTurn al componente Controls para que el botón esté activo.
-<Controls onDiscard={handleDiscard} onEndTurn={handleEndTurn} canEndTurn={hasDiscarded}/>
+  };
 
   const secretFrontUrl = cardPictures["varios"];
   const secretBackUrl = cardPictures["secret_back"];
@@ -353,19 +354,25 @@ const handleEndTurn = () => {
           <div className="hand-and-secrets">
             <Hand cards={localPlayerCards || []} />
             <div className="local-secrets-horizontal" aria-label="Secretos del jugador">
-              {(local.secretos || []).slice(0, 3).map((s, i) => (
-                <Secret
+              
+              {(local.secretos || []).slice(0, 3).map((s, i) => {
+                const secretName = s.nombre || "varios";
+                  // Determinamos la URL de la imagen frontal usando el nombre del secreto
+                const secretFrontImage = cardPictures[secretName] || secretFrontUrl;
+                return(
+                <Secret 
                   key={i}
-                  revealed={Boolean(s)}
+                  revealed={Boolean(s)} 
                   isLocal={true}
                   data={{
                     title: `Secreto ${i + 1}`,
-                    frontImage: secretFrontUrl,
+                    frontImage: secretFrontImage,
                     backImage: secretBackUrl,
                   }}
                   onOpen={(d) => openSecretModal({ ...d, revealed: true })}
                 />
-              ))}
+                )
+            })}
             </div>
           </div>
         </div>
