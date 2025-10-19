@@ -1,0 +1,14 @@
+.deck-stack {
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+}
+
+.deck-pile-game,
+.discard-pile-game {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

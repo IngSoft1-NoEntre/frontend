@@ -76,7 +76,6 @@ const GameForm = () => {
     }
   };
 
-  
   return (
     <div className="card">
       <h2>Crea una partida</h2>
