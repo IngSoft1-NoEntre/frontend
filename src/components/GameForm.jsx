@@ -17,17 +17,18 @@ const GameForm = () => {
   // Maneja cambios en los inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({...formData, [name]: value});
+    setFormData({ ...formData, [name]: value });
   };
 
   // Maneja el submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const nombre = formData.nombre;
     const min = parseInt(formData.min_jugadores, 10);
     const max = parseInt(formData.max_jugadores, 10);
 
-    // Validaciones
+    // Validaciones antes de enviar
     if (min < 2) {
       alert("La cantidad mínima de jugadores debe ser al menos 2.");
       return;
@@ -40,27 +41,32 @@ const GameForm = () => {
       alert("La cantidad mínima no puede ser mayor que la máxima.");
       return;
     }
+    if (nombre.length > 29) {
+      alert("El nombre no puede tener más de 29 caracteres.");
+      return;
+    }
 
     try {
       // Envía los datos al backend para crear la partida
       const res = await fetch("http://localhost:8000/partidas", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",         // Indica que se envía JSON
-          "Authorization": `Bearer ${token}`,         // Token para autenticación
+          "Content-Type": "application/json", // Indica que se envía JSON
+          Authorization: `Bearer ${token}`, // Token para autenticación
         },
-        body: JSON.stringify(formData),               // Convierte el objeto a JSON
+        body: JSON.stringify(formData), // Convierte el objeto a JSON
       });
 
-      // Si la respuesta no es exitosa, lanza error
+      //Si la respuesta no es exitosa, lanza error
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.detail || "Error inesperado");
       }
-      
+
       // Extrae el ID de la partida creada desde la respuesta
       const data = await res.json();
       const partidaId = data.id;
+      localStorage.setItem("partidaId", partidaId);
 
       // Redirige al lobby de la partida recién creada
       // En esa pantalla se conectará al WebSocket automáticamente
@@ -99,7 +105,9 @@ const GameForm = () => {
           onChange={handleChange}
           required
         />
-        <button className="btn-cta" type="submit">Crear</button>
+        <button className="btn-cta" type="submit">
+          Crear
+        </button>
       </form>
     </div>
   );

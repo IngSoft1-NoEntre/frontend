@@ -1,0 +1,202 @@
+/* TurnoIndicator.css - Compacto para esquina */
+
+/* Contenedor para jugador con corona */
+.player-with-crown {
+  position: relative;
+}
+
+/* Corona de turno */
+.corona-turno {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 1.2rem;
+  z-index: 50;
+  animation: coronaBounce 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Corona para jugador local */
+.corona-local {
+  position: relative;
+  top: auto;
+  right: auto;
+  margin-right: 8px;
+  font-size: 1.4rem;
+}
+
+@keyframes coronaBounce {
+  0%, 100% {
+    transform: translateY(0px) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(5deg);
+  }
+}
+
+.turno-indicator-compact {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(0, 0, 0, 0.09)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-width: 180px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  transition: all 0.3s ease;
+  animation: slideInFromRight 0.4s ease-out;
+}
+
+.turno-indicator-compact.mi-turno {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  /* Removed golden glow animation */
+}
+
+/* Mensaje de turno */
+.turno-mensaje-compact {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 9px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.turno-icono-compact {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.turno-indicator-compact.mi-turno .turno-icono-compact {
+  animation: iconPulseCompact 1.5s ease-in-out infinite;
+}
+
+@keyframes iconPulseCompact {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.turno-texto-compact {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.turno-indicator-compact.mi-turno .turno-texto-compact {
+  color: rgba(255, 255, 255, 0.95); /* Changed from golden #d4af37 to white */
+}
+
+/* Botones de acción */
+.turno-botones-compact {
+  display: flex;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.btn-turno {
+  flex: 1;
+  padding: 6px 12px;
+  border: 2px solid;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.btn-principal-turno {
+  border-color: #4CAF50;
+  color: #4CAF50;
+}
+
+.btn-principal-turno:hover:not(:disabled) {
+  background: #4CAF50;
+  color: white;
+}
+
+.btn-secundaria-turno {
+  border-color: #FF9800;
+  color: #FF9800;
+}
+
+.btn-secundaria-turno:hover:not(:disabled) {
+  background: #FF9800;
+  color: white;
+}
+
+.btn-terciaria-turno {
+  border-color: #2196F3;
+  color: #2196F3;
+}
+
+.btn-terciaria-turno:hover:not(:disabled) {
+  background: #2196F3;
+  color: white;
+}
+
+.btn-turno:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  filter: grayscale(0.5);
+}
+
+.btn-turno:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Animación de entrada */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(45px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .turno-indicator-compact {
+    bottom: 10px;
+    right: 10px;
+    min-width: 160px;
+    padding: 9px 11px;
+  }
+
+  .turno-mensaje-compact {
+    font-size: 0.75rem;
+  }
+
+  .turno-botones-compact {
+    flex-direction: column;
+    gap: 3px;
+  }
+  
+  .btn-turno {
+    font-size: 0.6rem; /* Smaller text for 3 buttons */
+    padding: 4px 8px;
+  }
+  
+  .corona-turno {
+    font-size: 1rem;
+    top: -6px;
+    right: -6px;
+  }
+}

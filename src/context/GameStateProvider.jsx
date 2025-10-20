@@ -30,25 +30,26 @@ import card_25 from '../assets/Cartas/25-event_pointsuspicions.png';
 import card_26 from '../assets/Cartas/26-devious_blackmailed.png';
 import card_27 from '../assets/Cartas/27-devious_fauxpas.png';
 
-const TOTAL_CARDS = 64;
+const TOTAL_CARDS = 45;
 
-// **Listado de cartas a excluir de la mano de los jugadores**
-const EXCLUDED_CARD_KEYS = [
-    "help",
-    "card_back",
-    "secret_back", 
-    "murder_escapes", 
-    "youre_the_murderer", 
-    "youre_the_accomplice", 
-    "varios" //caras de los secretos
-];
-
-const GameStateProvider = ({ children,  }) => {
-
-  const [localPlayerCards, setLocalPlayerCards] = useState([]); 
-  const [selectedCardIds, setSelectedCardIds] = useState([]); // Estado de selección
+const GameStateProvider = ({ children }) => {
+  // EXISTING state
+  const [localPlayerCards, setLocalPlayerCards] = useState([]);
+  const [selectedCardIds, setSelectedCardIds] = useState([]);
+  const [discardPileCards, setDiscardPileCards] = useState([]);
   const [deckCount, setDeckCount] = useState(TOTAL_CARDS);
-  
+
+
+  // NEW state for TurnoIndicator
+  const [gameState, setGameState] = useState({
+    turno_actual_id: null,
+    mazo_restante: TOTAL_CARDS,
+    acciones_disponibles: [],
+  });
+
+  const [ordenTurnos, setOrdenTurnos] = useState([]);
+  const [localPlayerId, setLocalPlayerId] = useState(null);
+
   // esto es un dict para consultar que imagen tiene que mostrar cada carta
   // formas de hacerlo:
   // 1) con dict, llaves con strings, pero es menos eficiente ?  igual son pocas cartas, debe tener algun cache?
@@ -84,22 +85,34 @@ const GameStateProvider = ({ children,  }) => {
     "social_faux_pass" : card_27,
   });
 
-  const [discardPileCards, setDiscardPileCards] = useState([]);
-
   //Funcion para seleccion/deseleccionar una carta
   const toggleCardSelection = (cardId) => {
-    setSelectedCardIds(prevIds => {
+    setSelectedCardIds((prevIds) => {
       if (prevIds.includes(cardId)) {
-        return prevIds.filter(id => id !== cardId);
+        return prevIds.filter((id) => id !== cardId);
       } else {
         return [...prevIds, cardId];
       }
     });
   };
 
-  const clearSelectedCards = () => {
-    setSelectedCardIds([]);
-  }
+  const handleSaltarTurno = (ws) => {
+    console.log("[GameStateProvider] Saltar turno clicked");
+
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      console.error("[GameStateProvider] WebSocket no está conectado");
+      return;
+    }
+
+    // Enviar acción al backend por WebSocket
+    ws.send(
+      JSON.stringify({
+        tipo: "saltar_turno",
+      })
+    );
+
+    console.log("[GameStateProvider] Mensaje 'saltar_turno' enviado por WS");
+  };
 
   const contextValue = {
     //cartas y descarte
@@ -116,7 +129,14 @@ const GameStateProvider = ({ children,  }) => {
     //resto
     cardPictures,
     toggleCardSelection,
-    TOTAL_CARDS
+    TOTAL_CARDS,
+    gameState,
+    setGameState,
+    ordenTurnos,
+    setOrdenTurnos,
+    localPlayerId,
+    setLocalPlayerId,
+    handleSaltarTurno,
   };
 
   return (

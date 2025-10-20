@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useCallback, useContext } from "react";
+import React, { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useParams } from "react-router-dom"
 import { GameStateContext } from "../context/GameStateContext";
 import "./GameScreen.css";
-import Player from "./Player";
+import Player from "./Player";    
 import Deck from "./Deck";
-import Hand from "./Hand";
-import Secret from "./Secret";
+import Hand from "./Hand";         
+import Secret from "./Secret";     
 import Controls from "./Controls";
 import FinishGameModal from "./FinishGameModal";
 import SecretModal from "./SecretModal";
+import TurnoIndicator from "./TurnoIndicator";
 
 /**
  * GameScreen dinámico: acepta `players`
@@ -45,7 +46,11 @@ export default function GameScreen({ players }) {
     TOTAL_CARDS: TOTAL_CARDS_CONTEXT,
     cardPictures,
     selectedCardIds,
-    setSelectedCardIds
+    setSelectedCardIds,
+    gameState,
+    setGameState,
+    ordenTurnos,
+    setOrdenTurnos,
   } = useContext(GameStateContext);
 
 // ESTADOS PRINCIPALES (No relacionados con cartas)
@@ -102,7 +107,12 @@ export default function GameScreen({ players }) {
                 if (dataWS.evento === "conectado") {
                     const localId = dataWS.jugador_id;
                     setLocalPlayerId(localId); 
-                    setGamePlayers(dataWS.orden_turnos.map(p => mapPlayerFromBackend(p, localId)));
+                    // USAR dataWS.orden_turnos en lugar de data.orden_turnos
+                    const jugadoresIniciales = (dataWS.orden_turnos || []).map((p) =>
+                      mapPlayerFromBackend(p, localId)
+                      );
+                    setGamePlayers(jugadoresIniciales);
+                    setOrdenTurnos(jugadoresIniciales);
                     setLoading(false);
                     return; // Importante para evitar procesar como estado_actualizado
                 }
@@ -118,8 +128,21 @@ export default function GameScreen({ players }) {
                     console.error(`Evento ${dataWS.evento} recibido sin payload.`);
                   return; // Salir si no hay datos.
                   }
-    
-                  // 2. OBTENER Y MAPEAR LA MANO
+                  
+                  //Actualizar contexto
+                  setGameState((prev) => ({
+                    ...prev,
+                    turno_actual_id: payload.turno_actual_id ?? prev.turno_actual_id,
+                    acciones_disponibles:
+                    payload.acciones_disponibles ?? prev.acciones_disponibles,
+                  }));
+
+                  // ACTUALIZAR TURNO LOCAL (para sincronización)
+                  if (payload.turno_actual_id !== undefined) {
+                    setTurnoActualId(payload.turno_actual_id);
+                  }
+
+                  // OBTENER Y MAPEAR LA MANO
                   const rawMano = payload.mano || [];
 
                   const mappedMano = rawMano.map(card => ({
@@ -131,6 +154,15 @@ export default function GameScreen({ players }) {
     
                   // 3. USAR SETTERS DEL CONTEXTO PARA CARTAS Y ESTADO
                   setLocalPlayerCards(mappedMano); // Esto repone la mano
+
+                  // ACTUALIZAR CARTAS EN ordenTurnos PARA TurnoIndicator
+                  setOrdenTurnos((prev) =>
+                    prev.map((player) =>
+                      player.id === localPlayerId
+                      ? { ...player, cards: mappedMano }
+                      : player
+                    ) 
+                  );  
 
                   setDiscardPileCards(payload.descarte || []); // Esto actualiza el descarte
                 
@@ -150,6 +182,18 @@ export default function GameScreen({ players }) {
                   // Solo loguear o manejar eventos mínimos que no requieren actualizar el estado completo.
                   console.log(`Notificación recibida: ${dataWS.evento}`);
                 }
+                // EVENTO: salto_turno
+                else if (dataWS.evento === "salto_turno") {
+                  console.log(
+                  "[GameScreen] Turno saltado, esperando actualización..."
+                );
+                }
+                // EVENTO: turno_terminado
+                else if (dataWS.evento === "turno_terminado") {
+                  console.log(
+                  "[GameScreen] Turno terminado, esperando actualización..."
+                  );
+                }
             };
         } catch (err) {
             console.error("FALLO CRÍTICO EN CARGA DE PARTIDA:", err.message);
@@ -162,7 +206,7 @@ export default function GameScreen({ players }) {
     
     // Cleanup del useEffect
     return () => socket?.close(); 
-  }, [partidaId, token, setLocalPlayerCards, setDiscardPileCards,setDeckCount]);
+  }, [partidaId, token, localPlayerId, setLocalPlayerCards, setDiscardPileCards, setGameState, setOrdenTurnos, setLocalPlayerId, setDeckCount]);
 
   // --- CÁLCULO DE ESTADOS DERIVADOS ---
   // deckCount y discardPileCards vienen del Context
@@ -253,18 +297,29 @@ export default function GameScreen({ players }) {
       // NOTA: El backend actualizará el estado (mano, descarte, mazo) y lo enviará de vuelta
       // a través del evento "estado_actualizado" o similar.
       setHasDiscarded(true);
-      // Crea una nueva mano excluyendo los IDs seleccionados
-      // const newHand = localPlayerCards.filter(
-      //   (card) => !selectedCardIds.includes(card.id)
-      // );
-      //setLocalPlayerCards(newHand);
-      
-      // Limpiar la selección inmediatamente después de enviar para una mejor UX
-      // (asumimos que la acción será exitosa)
       setSelectedCardIds([]); 
 
     } catch (error) {
       console.error("Error al enviar la acción de descarte:", error);
+    }
+  };
+
+  const handleSkipTurn = () => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      console.error("[GameScreen] WebSocket no conectado");
+      return;
+    }
+
+    const skipTurnPayload = {
+      tipo: "saltar_turno",
+    };
+
+    try {
+      ws.send(JSON.stringify(skipTurnPayload));
+      console.log("[GameScreen] Saltar turno enviado");
+      setHasDiscarded(false);
+    } catch (error) {
+      console.error("[GameScreen] Error al saltar turno:", error);
     }
   };
 
@@ -339,7 +394,7 @@ export default function GameScreen({ players }) {
             />
           ))}
         </div>
-
+        
         {/* Centro: mazos */}
         <div className="center-area">
           <Deck
@@ -377,16 +432,20 @@ export default function GameScreen({ players }) {
           </div>
         </div>
         <SecretModal item={openSecret} onClose={closeSecretModal} />
-        <Controls
-          onDiscard={handleDiscard}
-          onEndTurn={handleEndTurn}
-          canEndTurn={hasDiscarded} />
-      </div>
-      {isGameOverModalOpen && (
-        <FinishGameModal
-          onClose={closeGameOverModal}
+        <div>
+        <TurnoIndicator
+          ordenTurnos={ordenTurnos}
+          turnoActualId={gameState.turno_actual_id}
+          localPlayerId={localPlayerId}
+          onDescartar={handleDiscard}
+          onSaltarTurno={handleSkipTurn}
+          onTerminarTurno={handleEndTurn}
         />
-      )}
+        </div>
+      </div>
+        {isGameOverModalOpen && (
+        <FinishGameModal onClose={closeGameOverModal} partidaId={partidaId} />
+        )}
     </div>
   );
 }
