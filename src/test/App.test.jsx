@@ -56,7 +56,7 @@ describe('App', () => {
 
     it('ruta inexistente no renderiza los componentes validos', () => {
       renderAt('/non-existent-route'); 
-        
+      
       //si la ruta es invalida no deberia renderizar lo siguiente
       expect(screen.queryByText('MockJugadorForm')).not.toBeInTheDocument();
       expect(screen.queryByText('MockGameForm')).not.toBeInTheDocument();
