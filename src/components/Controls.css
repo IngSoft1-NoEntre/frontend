@@ -28,3 +28,12 @@
   background-color: var(--green);
   color: var(--text);
 }
+
+/* Estilo específico para el botón Jugar Set */
+.controls .btn.game {
+    background-color: #6366f1;
+    color: white;
+    font-weight: 700;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    flex-grow: 1; 
+}

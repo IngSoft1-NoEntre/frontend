@@ -148,6 +148,16 @@
   color: white;
 }
 
+.btn-play-game{
+  border-color: #fd2323;
+  color: #fd2323;
+}
+
+.btn-play-game:hover:not(:disabled) {
+  background: #fd2323;
+  color: white;
+}
+
 .btn-turno:disabled {
   cursor: not-allowed;
   opacity: 0.5;

@@ -1,5 +1,5 @@
 .discard-pile {
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -13,19 +13,25 @@
   justify-content: center;
 }
 .discard-pile-empty-slot {
-  width: 66px;
-  height: 92px;
-  border-radius: 8px;
-  border: 1px dashed rgba(255, 255, 255, 0.3); /* Indicador visual de espacio */
-  background: rgba(234, 179, 8, 0.04); /* Fondo sutil */
+  width: 50px;
+  height: 70px;
+  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  background: rgba(234, 179, 8, 0.04); 
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Opcional: añadir un texto o icono aquí */
 }
 .discard-pile-count {
   margin-top: 6px;
   color: var(--text);
   font-weight: 700;
   font-size: 12px;
+}
+
+.card-mini-size {
+    width: 48px !important; 
+    height: 64px !important;
+    border-radius: 6px; 
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.4);
 }

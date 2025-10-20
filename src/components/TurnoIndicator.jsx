@@ -10,6 +10,7 @@ const TurnoIndicator = ({
   onDescartar,
   onSaltarTurno,
   onTerminarTurno,
+  onPlaySet,
 }) => {
   // 1. Determinar si es el turno del jugador local
   const esMiTurno = turnoActualId === localPlayerId;
@@ -17,6 +18,8 @@ const TurnoIndicator = ({
   // 2. Encontrar el nombre del jugador con el turno actual
   const jugadorConTurno = ordenTurnos.find((p) => p.id === turnoActualId);
   const nombreTurno = jugadorConTurno?.nombre || "...";
+
+  
 
   // Muestra un mensaje de carga si no hay datos.
   if (ordenTurnos.length === 0) {
@@ -55,6 +58,13 @@ const TurnoIndicator = ({
 
       {/* Botones de acción (Lógica preservada) */}
       <div className="turno-botones-compact">
+        <button 
+          className="btn-turno btn-play-game"
+          disabled={!esMiTurno}
+          onClick={onPlaySet}
+        > 
+          Jugar
+        </button>
         <button
           className="btn-turno btn-principal-turno"
           disabled={!esMiTurno}

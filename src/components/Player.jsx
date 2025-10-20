@@ -1,13 +1,25 @@
 import React from "react";
 import "./Player.css";
 import Secret from "./Secret";
+import DetectiveSets from "./DetectiveSets"
 
 /**
  * Player minimal: esfera con inicial encima, nombre debajo, secretos en fila horizontal.
  * Props: player = { id, nombre, secretos: [bool,bool,bool], isLocal }
  */
-export default function Player({ player, onOpenSecret, secretFrontUrl, secretBackUrl }) {
+export default function Player({
+    player, 
+    onOpenSecret, 
+    secretFrontUrl, 
+    secretBackUrl,
+    detectiveSets,
+    cardPictures,
+    onSetClick
+    }) {
+
   const { nombre = "Esperando", secretos = [false, false, false], isLocal = false } = player;
+
+  const showDetectiveSets = detectiveSets && detectiveSets.length > 0 && !isLocal;
 
   return (
     <div className="player-wrapper" role="group" aria-label={`Jugador ${nombre}`}>
@@ -38,6 +50,18 @@ export default function Player({ player, onOpenSecret, secretFrontUrl, secretBac
           />
         ))}
       </div>
+      {/* Set de Detectives */}
+      {/* Renderizar sets de detectives (Solo para jugadores remotos) */}
+            {!player.isLocal && detectiveSets && detectiveSets.length > 0 && (
+                <div className="player-detective-sets-container">
+                    <DetectiveSets 
+                        sets={detectiveSets} 
+                        cardPictures={cardPictures}
+                        onSetClick={(setIndex) => onSetClick(setIndex, player.id)} 
+                        isRemote={true}
+                    />
+                </div>
+            )}
     </div>
-  );
+    );
 }

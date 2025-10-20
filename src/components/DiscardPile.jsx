@@ -16,7 +16,8 @@ export default function DiscardPile({ cards = [], currentCount = 0 , totalCount}
         {cardKeyName ? (
           <Card 
             cardname={cardKeyName} //visualiza la imagen
-            faceUp={true} 
+            faceUp={true}
+            className="card-mini-size"
           /> 
         ) : (
           <div className="discard-pile-empty-slot"></div>
