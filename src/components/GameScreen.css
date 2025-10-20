@@ -6,8 +6,9 @@
   padding: 20px;
   background-color: #0d0d0d;
 }
+
 .game-table {
-  width: 1100px;
+  width: 1200px; /* ✅ Aumentado de 1100px para más espacio */
   max-width: 95vw;
   aspect-ratio: 16/9;
   background: linear-gradient(
@@ -18,6 +19,90 @@
   border-radius: 14px;
   padding: 16px;
   position: relative;
+}
+
+/* ✅ CENTRO: Mazo + Draft en línea horizontal */
+.center-area {
+  position: absolute;
+  left: 50%;
+  top: 35%; /* ✅ Subido un poco */
+  transform: translate(-50%, -50%);
+  z-index: 25;
+  display: flex;
+  gap: 40px; /* ✅ Separación entre mazo y draft */
+  align-items: center;
+  justify-content: center;
+}
+
+.draft-inline {
+  display: flex;
+  align-items: center;
+}
+
+/* ✅ ÁREA LOCAL: Mano + Secretos */
+.local-area {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+}
+
+.local-player-zone {
+  display: flex;
+  gap: 16px; /* Solo separación entre mano y secretos */
+  align-items: end;
+}
+
+/* ✅ SETS entre centro (35%) y mano (bottom: 80px) */
+.local-sets-area {
+  position: absolute;
+  bottom: 180px; /* ✅ Entre centro y mano */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 27;
+}
+
+.sets-placeholder {
+  min-width: 200px;
+  height: 77px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0 20px;
+}
+
+/* ✅ SECRETOS */
+.local-secrets-horizontal {
+  display: flex;
+  gap: 6px;
+  align-items: end;
+}
+
+.secret-slot {
+  width: 40px; /* ✅ Igual que secret-card-mini */
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.secret-empty {
+  width: 40px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 16px;
+  background: rgba(0, 0, 0, 0.25);
 }
 
 /* columnas izquierda/derecha */
@@ -94,7 +179,6 @@
 .local-secrets-horizontal {
   display: flex;
   gap: 8px;
-  margin-left: 8px;
   align-items: end;
 }
 
@@ -117,4 +201,25 @@
 
 .player-top-wrapper {
   margin: 0 6px;
+}
+
+.secret-slot {
+  width: 66px;
+  height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.secret-empty {
+  width: 66px;
+  height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 24px;
+  background: rgba(0, 0, 0, 0.3);
 }

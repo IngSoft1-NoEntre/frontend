@@ -9,6 +9,8 @@ import "./Draft.css";
 const Draft = ({ cards = [] }) => {
   const [hoveredCardId, setHoveredCardId] = useState(null);
 
+  console.log("[Draft] Renderizando con", cards.length, "cartas:", cards);
+
   return (
     <div className="draft-container">
       <div className="draft-label">Draft</div>
@@ -20,6 +22,13 @@ const Draft = ({ cards = [] }) => {
         ) : (
           cards.map((card) => {
             const isHovered = hoveredCardId === card.id;
+
+            console.log(
+              "[Draft] Renderizando carta:",
+              card.id,
+              card.title || card.nombre
+            );
+
             return (
               <div
                 key={card.id}
@@ -28,10 +37,14 @@ const Draft = ({ cards = [] }) => {
                 onMouseLeave={() => setHoveredCardId(null)}
                 title={card.nombre || card.title}
               >
+                {/* ✅ USAR LAS PROPS CORRECTAS: cardname, faceUp, cardId */}
                 <Card
-                  title={card.title || card.nombre || "card_back"}
-                  id={card.id}
+                  cardname={card.title || card.nombre || "card_back"}
+                  faceUp={true} // ✅ Las cartas del draft están boca arriba
+                  cardId={card.id}
+                  isSelectable={false} // ✅ NO seleccionable
                   isSelected={false} // ✅ Nunca seleccionada
+                  onSelect={null} // ✅ Sin callback
                 />
               </div>
             );

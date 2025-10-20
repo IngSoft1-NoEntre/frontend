@@ -2,8 +2,11 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { GameStateContext } from "../context/GameStateContext";
 import "./GameScreen.css";
+import Hand from "./Hand";
+import Card from "./Card";
 import Deck from "./Deck";
 import Draft from "./Draft";
+import CardStack from "./CardStack";
 import FinishGameModal from "./FinishGameModal";
 import SecretModal from "./SecretModal";
 import TurnoIndicator from "./TurnoIndicator";
@@ -24,14 +27,15 @@ export default function GameScreen({ players }) {
 
   const {
     setLocalPlayerCards,
+    localPlayerCards,
     setDiscardPileCards,
     discardPileCards,
     selectedCardIds,
     setSelectedCardIds,
     draftCards,
     setDraftCards,
-
-    // AGREGAR ESTOS DEL CONTEXTO
+    selectedDraftCardIds,
+    setSelectedDraftCardIds,
     gameState,
     setGameState,
     ordenTurnos,
@@ -43,10 +47,11 @@ export default function GameScreen({ players }) {
   console.log("[GameScreen] Contexto cargado:", {
     hasSetSelectedCardIds: typeof setSelectedCardIds === "function",
     selectedCardIds,
+    selectedDraftCardIds,
     hasGameState: !!gameState,
-  }); // AGREGAR LOG PARA DEBUG
+  });
 
-  // ESTADOS LOCALES (no duplicar los del contexto)
+  // ESTADOS LOCALES
   const [ws, setWs] = useState(null);
   const [gamePlayers, setGamePlayers] = useState([]);
   const [turnoActualId, setTurnoActualId] = useState(null);
@@ -57,10 +62,12 @@ export default function GameScreen({ players }) {
   ]);
   const [hasDiscarded, setHasDiscarded] = useState(false);
   const [initialDeckCount, setInitialDeckCount] = useState(null);
-  // AGREGAR UNA REF PARA ACCEDER AL ESTADO ACTUAL DEL MAZO
+
+  // ✅ AGREGAR ESTAS LÍNEAS CRÍTICAS
+  const isComponentMounted = useRef(true);
   const gameStateRef = useRef(gameState);
 
-  // MANTENER LA REF SINCRONIZADA
+  // Mantener la ref sincronizada
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
@@ -71,6 +78,9 @@ export default function GameScreen({ players }) {
   const [openSecret, setOpenSecret] = useState(null);
 
   useEffect(() => {
+    // ✅ MARCAR COMO MONTADO AL INICIO
+    isComponentMounted.current = true;
+
     if (!partidaId || !token) return;
 
     let socket;
@@ -192,11 +202,10 @@ export default function GameScreen({ players }) {
             setDiscardPileCards(payload.descarte || []);
 
             // ✅ PROCESAR DRAFT - IGUAL QUE LA MANO, SIMPLE
-            if (payload.estado_draft?.cartas_disponibles) {
-              const rawDraft = payload.estado_draft.cartas_disponibles;
-              const mappedDraft = rawDraft.map((card) => ({
+            if (payload.draft && Array.isArray(payload.draft)) {
+              const mappedDraft = payload.draft.map((card) => ({
                 id: card.id,
-                title: card.nombre || "card_back", // ✅ Usar 'title' como en la mano
+                title: card.nombre || "card_back",
                 nombre: card.nombre,
                 tipo: card.tipo,
               }));
@@ -330,19 +339,13 @@ export default function GameScreen({ players }) {
 
     fetchInitialData();
 
-    return () => socket?.close();
-  }, [
-    partidaId,
-    token,
-    localPlayerId,
-    initialDeckCount,
-    isGameOverModalOpen,
-    setLocalPlayerCards,
-    setDiscardPileCards,
-    setGameState,
-    setOrdenTurnos,
-    setLocalPlayerId,
-  ]);
+    return () => {
+      // ✅ MARCAR COMO DESMONTADO AL CLEANUP
+      console.log("[GameScreen] Componente desmontándose...");
+      isComponentMounted.current = false;
+      socket?.close();
+    };
+  }, [partidaId, token]); // ✅ SOLO ESTAS DEPENDENCIAS
 
   // HANDLERS
   const handleDiscard = () => {
@@ -414,16 +417,48 @@ export default function GameScreen({ players }) {
       return;
     }
 
-    const endTurnPayload = {
-      tipo: "terminar_turno",
+    console.log("[GameScreen] handleEndTurn llamado");
+    console.log(
+      "[GameScreen] Cartas del draft seleccionadas:",
+      selectedDraftCardIds
+    );
+
+    const sendEndTurn = () => {
+      const endTurnPayload = { tipo: "terminar_turno" };
+      try {
+        ws.send(JSON.stringify(endTurnPayload));
+        console.log("[GameScreen] Terminar turno enviado");
+        setHasDiscarded(false);
+      } catch (error) {
+        console.error("[GameScreen] Error al terminar turno:", error);
+      }
     };
 
-    try {
-      ws.send(JSON.stringify(endTurnPayload));
-      console.log("[GameScreen] Terminar turno enviado");
-      setHasDiscarded(false);
-    } catch (error) {
-      console.error("[GameScreen] Error al terminar turno:", error);
+    // Si hay cartas seleccionadas del draft, reponerlas primero y luego terminar turno
+    if (selectedDraftCardIds && selectedDraftCardIds.length > 0) {
+      const reponerPayload = {
+        tipo: "reponer_de_draft",
+        cartas: selectedDraftCardIds,
+      };
+
+      try {
+        ws.send(JSON.stringify(reponerPayload));
+        console.log(
+          "[GameScreen] Reponiendo del draft:",
+          selectedDraftCardIds.length,
+          "cartas"
+        );
+        setSelectDraftCardIds([]); // Limpiar selección
+      } catch (error) {
+        console.error("[GameScreen] Error al reponer del draft:", error);
+        return; // No continuar si falla
+      }
+
+      // esperar un pequeño retardo y luego terminar turno
+      setTimeout(sendEndTurn, 200);
+    } else {
+      // No hay cartas del draft seleccionadas, terminar turno inmediatamente
+      sendEndTurn();
     }
   };
 
@@ -449,17 +484,48 @@ export default function GameScreen({ players }) {
           onTerminarTurno={handleEndTurn}
         />
 
-        {/* Centro: mazos */}
+        {/* Centro: Mazo izquierda, Draft derecha */}
         <div className="center-area">
           <Deck
             discardCards={discardPileCards}
             deckCount={gameState.mazo_restante}
             totalCards={initialDeckCount || TOTAL_CARDS_FIXED}
           />
+
+          {/* ✅ DRAFT A LA DERECHA DEL MAZO */}
+          <div className="draft-inline">
+            <CardStack cards={draftCards} label="DRAFT" />
+          </div>
         </div>
 
-        <div className="draft-area">
-          <Draft cards={draftCards} />
+        {/* ✅ SETS DEL JUGADOR LOCAL (entre centro y mano) */}
+        <div className="local-sets-area">
+          <div className="sets-placeholder">Sets (próximamente)</div>
+        </div>
+
+        {/* ÁREA LOCAL: Solo Mano + Secretos */}
+        <div className="local-area">
+          <div className="local-player-zone">
+            <Hand cards={localPlayerCards} />
+
+            <div className="local-secrets-horizontal">
+              {localPlayerSecrets.map((hasSecret, idx) => (
+                <div key={idx} className="secret-slot">
+                  {hasSecret ? (
+                    <Card
+                      cardname="varios"
+                      faceUp={true}
+                      cardId={`secret-${idx}`}
+                      isSelectable={false}
+                      isSelected={false}
+                    />
+                  ) : (
+                    <div className="secret-empty">—</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <SecretModal item={openSecret} onClose={closeSecretModal} />
@@ -470,3 +536,4 @@ export default function GameScreen({ players }) {
     </div>
   );
 }
+/*{*/

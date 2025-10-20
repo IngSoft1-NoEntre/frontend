@@ -51,7 +51,7 @@ const GameStateProvider = ({ children }) => {
 
   // AGREGAR ESTADO PARA DRAFT
   const [draftCards, setDraftCards] = useState([]);
-
+  const [selectedDraftCardIds, setSelectedDraftCardIds] = useState([]);
   // Nuevo estado para TurnoIndicator
   const [gameState, setGameState] = useState({
     turno_actual_id: null,
@@ -234,6 +234,8 @@ const GameStateProvider = ({ children }) => {
     deckCount,
     draftCards,
     setDraftCards,
+    selectedDraftCardIds,
+    setSelectedDraftCardIds,
     gameState,
     setGameState,
     ordenTurnos,
@@ -244,6 +246,11 @@ const GameStateProvider = ({ children }) => {
     handleSaltarTurno,
     handleTerminarTurno,
   };
+
+  console.log(
+    "[GameStateProvider] selectedDraftCardIds:",
+    selectedDraftCardIds
+  );
 
   return (
     <GameStateContext.Provider value={contextValue}>

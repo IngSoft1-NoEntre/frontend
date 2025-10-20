@@ -1,10 +1,10 @@
 .deck-stack {
   display: flex;
   flex-direction: row;
-  gap: 14px;
+  gap: 12px; /* ✅ Reducido de 14px */
   align-items: center;
   justify-content: center;
-  transform: scale(0.7);
+  /* ❌ SIN transform: scale() */
 }
 
 .deck-pile-game,
