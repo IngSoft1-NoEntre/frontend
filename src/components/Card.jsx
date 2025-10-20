@@ -10,6 +10,7 @@ const Card = ({
     isSelected = false,  
     onSelect              
 }) => {
+  // console.log("Renderizando carta:", cardname);
 
   if (!cardname) {
     //Se establece una className para determinar que la carta

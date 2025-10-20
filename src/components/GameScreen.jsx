@@ -9,6 +9,8 @@ import Secret from "./Secret";
 import Controls from "./Controls";
 import FinishGameModal from "./FinishGameModal";
 import SecretModal from "./SecretModal";
+import DiscardModal from './DiscardModal';
+
 
 /**
  * GameScreen dinámico: acepta `players`
@@ -54,6 +56,7 @@ export default function GameScreen({ players }) {
   const [localPlayerId, setLocalPlayerId] = useState(null);
   const [turnoActualId, setTurnoActualId] = useState(null);
   const [hasDiscarded, setHasDiscarded] = useState(false);
+  const [totalCards, setTotalCards] = useState(0)
 
   // ESTADOS SECUNDARIOS
   const [loading, setLoading] = useState(true);
@@ -64,6 +67,12 @@ export default function GameScreen({ players }) {
     { nombre: "varios" }, 
     { nombre: "varios" }
   ]);
+
+  // Estados para ver las primeras cartas del mazo de descarte.  add
+  const [privateCards, setPrivateCards] = useState([]);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const selectedCard = localPlayerCards.find(card => selectedCardIds.includes(card.id));
+
 
   useEffect(() => {
     if (!partidaId || !token) return;
@@ -102,13 +111,15 @@ export default function GameScreen({ players }) {
                 if (dataWS.evento === "conectado") {
                     const localId = dataWS.jugador_id;
                     setLocalPlayerId(localId); 
+                    console.log("localPlayerId seteado, cuando esta conectado:", localId);
                     setGamePlayers(dataWS.orden_turnos.map(p => mapPlayerFromBackend(p, localId)));
                     setLoading(false);
                     return; // Importante para evitar procesar como estado_actualizado
                 }
                 
-                if (dataWS.evento === "iniciada" || dataWS.evento === "actualizacion" || dataWS.evento === "estado_actualizado") {
-                  console.log("Payload recibido (simplificado):", dataWS);
+                if (dataWS.evento === "iniciada" || dataWS.evento === "actualizacion" || 
+                  dataWS.evento === "estado_actualizado") {
+                  console.log("Payload recibido :", dataWS);
     
                   // 1. CONFÍA en dataWS.payload, que es lo que envían tus logs.
                   const payload = dataWS.payload; 
@@ -116,12 +127,12 @@ export default function GameScreen({ players }) {
                   // Si por alguna razón crítica no viene, usamos un objeto vacío para evitar crashes.
                   if (!payload) {
                     console.error(`Evento ${dataWS.evento} recibido sin payload.`);
-                  return; // Salir si no hay datos.
+                    return; // Salir si no hay datos.
                   }
-    
+                  
                   // 2. OBTENER Y MAPEAR LA MANO
                   const rawMano = payload.mano || [];
-
+                  
                   const mappedMano = rawMano.map(card => ({
                     id: card.id,
                     title: card.nombre || "card_back", 
@@ -133,10 +144,10 @@ export default function GameScreen({ players }) {
                   setLocalPlayerCards(mappedMano); // Esto repone la mano
 
                   setDiscardPileCards(payload.descarte || []); // Esto actualiza el descarte
-                
+                  setTotalCards(payload.mazo_restante) // total de cards en el mazo
                   setDeckCount(payload.mazo_restante); // Esto actualiza el mazo
     
-                  setLocalPlayerId(payload.jugador_id || localPlayerId);
+                  // setLocalPlayerId(payload.jugador_id || localPlayerId);
 
                   if (payload.secretos && Array.isArray(payload.secretos)) {
                     // Almacena el objeto secreto directamente para usar su 'nombre' y renderizar la imagen
@@ -148,8 +159,20 @@ export default function GameScreen({ players }) {
                   // Lógica específica para "cartas_descartadas" o "jugador_conectado"
                 else if (dataWS.evento === "cartas_descartadas" || dataWS.evento === "jugador_conectado") {
                   // Solo loguear o manejar eventos mínimos que no requieren actualizar el estado completo.
-                  console.log(`Notificación recibida: ${dataWS.evento}`);
+                  // console.log(`Notificación recibida: ${dataWS.evento}`);
                 }
+                else if (dataWS.evento === "ver_descarte_privado") { // add
+                  console.log("Cartas recibidas:", dataWS.payload.cartas);
+                  const mappedCartas = dataWS.payload.cartas.map(card => ({
+                    id: card.id,
+                    title: card.nombre || "card_back", // esto asegura que Card reciba 'title'
+                    tipo: card.tipo,
+                    zona: "descarte" // o lo que corresponda
+                  }));
+                  setPrivateCards(mappedCartas); // cartas del descarte
+                  setShowDiscardModal(true);
+                }
+
             };
         } catch (err) {
             console.error("FALLO CRÍTICO EN CARGA DE PARTIDA:", err.message);
@@ -167,7 +190,6 @@ export default function GameScreen({ players }) {
   // --- CÁLCULO DE ESTADOS DERIVADOS ---
   // deckCount y discardPileCards vienen del Context
   const isDeckEmpty = deckCount <= 0;
-  
   // DISTRIBUCIÓN DE JUGADORES
   const list = gamePlayers.filter(Boolean);
 
@@ -289,8 +311,34 @@ export default function GameScreen({ players }) {
     }
   };
 
+  // maneja la carta de evento
+  const handlePlayEvent = () => {
+    if (!selectedCard || selectedCard.title !== "look_into_the_ashes") {
+      console.warn("La carta seleccionada no es 'Look in the Ashes'");
+      return;
+    }
+    ws.send(JSON.stringify({
+      tipo: "jugar",
+      option: "jugar_event",
+      carta_id: selectedCard.id
+    }));
+  };
+
+
+
+
   const secretFrontUrl = cardPictures["varios"];
   const secretBackUrl = cardPictures["secret_back"];
+
+  // useEffect para observar cambios en privateCards
+  useEffect(() => {
+    console.log("console del useEffect, Cartas privadas actualizadas:", privateCards);
+  }, [privateCards]);
+
+  // seEffect para observar cambios en privateCards
+  useEffect(() => {
+    console.log("Modal de descarte actualizado:", showDiscardModal);
+  }, [showDiscardModal]);
   
   return (
     <div className="game-root">
@@ -345,7 +393,7 @@ export default function GameScreen({ players }) {
           <Deck
             discardCards={discardPileCards}
             deckCount={deckCount}
-            totalCards={TOTAL_CARDS_CONTEXT}
+            totalCards={totalCards}
           />
         </div>
 
@@ -377,10 +425,21 @@ export default function GameScreen({ players }) {
           </div>
         </div>
         <SecretModal item={openSecret} onClose={closeSecretModal} />
+        {showDiscardModal && (
+          <DiscardModal
+            cards={privateCards}
+            onClose={() => setShowDiscardModal(false)}
+            title='Vista privada del descarte.'
+          />
+        )}
+
         <Controls
           onDiscard={handleDiscard}
           onEndTurn={handleEndTurn}
-          canEndTurn={hasDiscarded} />
+          canEndTurn={hasDiscarded}
+          selectedCard={selectedCard}
+          onPlayEvent={handlePlayEvent}
+        />
       </div>
       {isGameOverModalOpen && (
         <FinishGameModal
