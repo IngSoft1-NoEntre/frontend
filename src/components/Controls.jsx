@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { GameStateContext } from "../context/GameStateContext"; 
 import "./Controls.css";
 
-export default function Controls({ onDiscard, onEndTurn, canEndTurn }) {
+export default function Controls({ onDiscard, onEndTurn, canEndTurn, onPlaySet, canPlaySet }) {
     const { 
         selectedCardIds,      
         discardPileCards,     
@@ -14,7 +14,7 @@ export default function Controls({ onDiscard, onEndTurn, canEndTurn }) {
     const cardsToDraw = selectedCardIds.length;
     const hasSelectedCards = cardsToDraw > 0;
 
-    // Contadores Proyectados (G2: Lo que pasará al presionar el botón)
+    // Contadores Proyectados
     const projectedDeckCount = deckCount - cardsToDraw;
     const currentDiscardCount = discardPileCards.length;
     const projectedDiscardCount = currentDiscardCount + cardsToDraw;
@@ -36,6 +36,13 @@ export default function Controls({ onDiscard, onEndTurn, canEndTurn }) {
                 disabled={isDisabled}
             >
                 {buttonText}
+            </button>
+            <button 
+                className={`btn primary game ${canPlaySet ? 'active-set' : ''}`}
+                onClick={onPlaySet}
+                disabled={!canPlaySet} 
+            > 
+                Jugar
             </button>
             {/*<button className="btn medium">Saltar turno</button>*/}
             <button className="btn primary"

@@ -12,9 +12,9 @@ export default function Player({
     onOpenSecret, 
     secretFrontUrl, 
     secretBackUrl,
-    detectiveSets = [],
-    cardPictures = {},
-    onSetClick = () => {}
+    detectiveSets,
+    cardPictures,
+    onSetClick
     }) {
 
   const { nombre = "Esperando", secretos = [false, false, false], isLocal = false } = player;
@@ -51,15 +51,17 @@ export default function Player({
         ))}
       </div>
       {/* Set de Detectives */}
-      {showDetectiveSets && (
-          <div className="player-detective-sets-container"> 
-              <DetectiveSets
-                  sets={detectiveSets}
-                  cardPictures={cardPictures}
-                  onSetClick={onSetClick}
-              />
-          </div>
-      )}
+      {/* Renderizar sets de detectives (Solo para jugadores remotos) */}
+            {!player.isLocal && detectiveSets && detectiveSets.length > 0 && (
+                <div className="player-detective-sets-container">
+                    <DetectiveSets 
+                        sets={detectiveSets} 
+                        cardPictures={cardPictures}
+                        onSetClick={(setIndex) => onSetClick(setIndex, player.id)} 
+                        isRemote={true}
+                    />
+                </div>
+            )}
     </div>
     );
 }
