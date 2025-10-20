@@ -9,8 +9,8 @@
   justify-content: center;
 }
 .deck-pile-graphic {
-  width: 66px;
-  height: 92px;
+  width: 48px;
+  height: 64px;
   background-image: url('../assets/Cartas/01-card_back.png');
   background-size: cover; 
   background-position: center; 

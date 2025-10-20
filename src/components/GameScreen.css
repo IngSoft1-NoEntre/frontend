@@ -19,7 +19,6 @@
   padding: 16px;
   position: relative;
 }
-
 /* columnas izquierda/derecha */
 .players-col {
   position: absolute;
@@ -36,7 +35,6 @@
 .players-right {
   right: 8px;
 }
-
 /* jugador superior centrado */
 .player-top-center {
   position: absolute;
@@ -45,12 +43,11 @@
   transform: translateX(-50%);
   z-index: 40;
 }
-
 /* centro (mazos) centrados exactamente en el medio*/
 .center-area {
   position: absolute;
   left: 50%;
-  top: 40%;
+  top: 50%;
   transform: translate(-50%, -50%);
   z-index: 25;
   display: flex;
@@ -59,30 +56,43 @@
   justify-content: center;
 }
 
-/* area local: mano y secretos */
+/* GameScreen.css (sección .local-area) */
 .local-area {
   position: absolute;
-  bottom: 100px;
+  bottom: 60px; 
+  height: auto; 
+  min-height: auto;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 18px;
-  align-items: end;
+  flex-direction: column; 
+  gap: 8px; 
+  align-items: center;
   justify-content: center;
-  z-index: 30;
+  z-index: 50;
 }
 
 /* contenedor mano + secretos en horizontal */
 .hand-and-secrets {
   display: flex;
   gap: 12px;
-  align-items: end;
+  align-items: flex-end;
+}
+/* Regla para la carta de la mano */
+.hand-card {
+  transition: border 0.2s ease-out, transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+.hand-card:hover {
+  border: 2px solid #ff9500;
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); 
+  z-index: 60;
 }
 
 /* secretos horizontales (a la derecha de la mano) */
 .local-secrets-horizontal {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-left: 8px;
   align-items: end;
 }
@@ -106,4 +116,12 @@
 
 .player-top-wrapper {
   margin: 0 6px;
+}
+
+.sets-independent-position {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 45;
+    top: 58%;
 }

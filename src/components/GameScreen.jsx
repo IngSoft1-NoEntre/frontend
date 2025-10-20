@@ -9,6 +9,7 @@ import Secret from "./Secret";
 import Controls from "./Controls";
 import FinishGameModal from "./FinishGameModal";
 import SecretModal from "./SecretModal";
+import DetectiveSets from "./DetectiveSets";
 
 /**
  * GameScreen dinámico: acepta `players`
@@ -20,9 +21,12 @@ import SecretModal from "./SecretModal";
  * 6 -> local + 2 left + 2 right + 1 arriba
  */
 
-const TOTAL_CARDS_FIXED = 64;
-
 const emptyPlayer = { id: -1, nombre: "Local", secretos: [false, false, false], isLocal: true, cards: [] };
+
+const SIMULATED_SETS = [
+    [{ title: "hercule_poirot" }, { title: "hercule_poirot" }, { title: "hercule_poirot" }],
+    [{ title: "miss_marple" }, { title: "miss_marple" }, { title: "miss_marple" }],
+];
 
 const mapPlayerFromBackend = (p, localId) => ({
     id: p.id,
@@ -64,6 +68,9 @@ export default function GameScreen({ players }) {
     { nombre: "varios" }, 
     { nombre: "varios" }
   ]);
+
+  const [localDetectiveSets, setLocalDetectiveSets] = useState(SIMULATED_SETS);
+  const [activeSetModalIndex, setActiveSetModalIndex] = useState(null);
 
   useEffect(() => {
     if (!partidaId || !token) return;
@@ -168,24 +175,24 @@ export default function GameScreen({ players }) {
   // deckCount y discardPileCards vienen del Context
   const isDeckEmpty = deckCount <= 0;
   
-  // DISTRIBUCIÓN DE JUGADORES
+  // Distribucion de jugadores
   const list = gamePlayers.filter(Boolean);
 
   let local = list.find((p) => p.isLocal);
   let others = list.filter((p) => !p.isLocal);
 
-  if (local) {
-      // ASIGNAR LOS SECRETOS LOCALES (actualizados por WS o estado inicial)
-      local = { ...local, secretos: localPlayerSecrets };
-  } else {
-    local = list.length > 0 ? list.find(p => p.id === localPlayerId) || list[0] : emptyPlayer;
-    others = list.filter((p) => p.id !== local.id);
+ if (!local && localPlayerId) {
+    local = list.find((p) => p.id === localPlayerId);
   }
 
-  if (!local) {
-    // tomar el último como local por defecto
-    local = others.length ? others[others.length - 1] : list[list.length - 1];
-    others = list.filter((p) => p.id !== local.id);
+  if (local) {
+      // ASIGNAR LOS SECRETOS LOCALES (actualizados por WS o estado inicial)
+      local = { ...local, secretos: localPlayerSecrets, detectiveSets: localDetectiveSets,};
+      others = list.filter((p) => p.id !== local.id);
+  } else {
+    local = emptyPlayer;
+    local.detectiveSets = localDetectiveSets;
+    others = [];
   }
 
   // Si el mazo está vacío Y el modal no se ha abierto, lo abrimos.
@@ -233,6 +240,36 @@ export default function GameScreen({ players }) {
       break;
   }
 
+
+  const openSetModal = (setIndex) => {
+    setActiveSetModalIndex(setIndex);
+  };
+
+// Funcion para cerrar la modal
+const closeSetModal = () => {
+    setActiveSetModalIndex(null);
+};
+
+const activeSetData = activeSetModalIndex !== null 
+  ? (() => {
+      const currentSet = local.detectiveSets[activeSetModalIndex];
+      const cardTitle = currentSet[0]?.title;
+      
+      // Obtener la URL de la imagen de la primera carta
+      const frontImageURL = cardPictures[cardTitle] || cardPictures["card_back"];
+
+      // Devolver el objeto de datos con la URL de la imagen
+      return { 
+          isSet: true, // Bandera clave
+          title: cardTitle ? `Set: ${cardTitle.replace(/_/g, ' ').toUpperCase()}` : "Set de Detective",
+          cards: currentSet,
+          revealed: true,
+          frontImage: frontImageURL, 
+      };
+  })()
+  : null;
+
+
   // La función para cerrar el modal (usada en el botón "Volver a jugar" del modal)
   // Aunque "Volver a jugar" navega, tener esta función de cierre es buena práctica.
   const closeGameOverModal = () => setIsGameOverModalOpen(false);
@@ -253,14 +290,6 @@ export default function GameScreen({ players }) {
       // NOTA: El backend actualizará el estado (mano, descarte, mazo) y lo enviará de vuelta
       // a través del evento "estado_actualizado" o similar.
       setHasDiscarded(true);
-      // Crea una nueva mano excluyendo los IDs seleccionados
-      // const newHand = localPlayerCards.filter(
-      //   (card) => !selectedCardIds.includes(card.id)
-      // );
-      //setLocalPlayerCards(newHand);
-      
-      // Limpiar la selección inmediatamente después de enviar para una mejor UX
-      // (asumimos que la acción será exitosa)
       setSelectedCardIds([]); 
 
     } catch (error) {
@@ -282,7 +311,7 @@ export default function GameScreen({ players }) {
 
     try {
         ws.send(JSON.stringify(endTurnPayload));
-        // NOTA: El backend responderá con "estado_actualizado" que contendrá la mano repuesta
+        //El backend responderá con "estado_actualizado" que contendrá la mano repuesta
         setHasDiscarded(false);
     } catch (error) {
         console.error("Error al enviar la acción de terminar turno:", error);
@@ -307,6 +336,9 @@ export default function GameScreen({ players }) {
               onOpenSecret={openSecretModal}
               secretFrontUrl={secretFrontUrl}
               secretBackUrl={secretBackUrl}
+              detectiveSets={SIMULATED_SETS}
+              cardPictures={cardPictures}
+              onSetClick={openSetModal}
             />
           ))}
         </div>
@@ -323,6 +355,9 @@ export default function GameScreen({ players }) {
               onOpenSecret={openSecretModal}
               secretFrontUrl={secretFrontUrl}
               secretBackUrl={secretBackUrl}
+              detectiveSets={SIMULATED_SETS} 
+              cardPictures={cardPictures}
+              onSetClick={openSetModal}
             />
           ))}
         </div>
@@ -336,6 +371,9 @@ export default function GameScreen({ players }) {
               onOpenSecret={openSecretModal}
               secretFrontUrl={secretFrontUrl}
               secretBackUrl={secretBackUrl}
+              detectiveSets={SIMULATED_SETS}
+              cardPictures={cardPictures}
+              onSetClick={openSetModal}
             />
           ))}
         </div>
@@ -348,8 +386,16 @@ export default function GameScreen({ players }) {
             totalCards={TOTAL_CARDS_CONTEXT}
           />
         </div>
-
-        {/* Local: mano + secretos */}
+        
+        {/* Local: mano + secretos + set de detectives*/}
+        <div className="sets-independent-position">
+          <DetectiveSets 
+              sets={local.detectiveSets || []} // Asegúrate de pasar el array
+              cardPictures={cardPictures}
+              onSetClick={openSetModal}
+          />
+        </div>
+        
         <div className="local-area" aria-label="Area local">
           <div className="hand-and-secrets">
             <Hand cards={localPlayerCards || []} />
@@ -377,6 +423,14 @@ export default function GameScreen({ players }) {
           </div>
         </div>
         <SecretModal item={openSecret} onClose={closeSecretModal} />
+        {/* SecretModal reutilizado para ver el set de detectives */}
+        {activeSetData && (
+          <SecretModal 
+            item={activeSetData} 
+            onClose={closeSetModal} 
+            cardPictures={cardPictures} 
+          />
+        )}
         <Controls
           onDiscard={handleDiscard}
           onEndTurn={handleEndTurn}

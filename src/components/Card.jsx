@@ -8,7 +8,8 @@ const Card = ({
     cardId, 
     isSelectable = false,
     isSelected = false,  
-    onSelect              
+    onSelect,
+    className          
 }) => {
 
   if (!cardname) {
@@ -84,7 +85,7 @@ const Card = ({
   return (
     <div 
       // Pasar las props de selección al cálculo de clases
-      className={getDynamicClassName(isHovered, size, isSelected, isSelectable)}
+      className={`${getDynamicClassName(isHovered, size, isSelected, isSelectable)} ${className || ''}`}
       ref={cardRef}
       tabIndex={isFocusable ? 0 : -1} 
       onKeyDown={handleKeyDown}
@@ -92,7 +93,7 @@ const Card = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
-    >
+     >
       {faceUp 
         ? <img className="cardpic" src={cardPictures[cardname]} alt={cardname} />
         : <img className="cardpic" src={cardPictures["card_back"]} alt="card_back" />}

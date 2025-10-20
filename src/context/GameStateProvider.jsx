@@ -40,7 +40,7 @@ const EXCLUDED_CARD_KEYS = [
     "murder_escapes", 
     "youre_the_murderer", 
     "youre_the_accomplice", 
-    "varios" //caras de los secretos
+    "varios"
 ];
 
 const GameStateProvider = ({ children,  }) => {
