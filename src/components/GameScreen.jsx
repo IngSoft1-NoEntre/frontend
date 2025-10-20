@@ -26,10 +26,10 @@ const TOTAL_CARDS_FIXED = 64;
 const emptyPlayer = { id: -1, nombre: "Local", secretos: [false, false, false], isLocal: true, cards: [] };
 
 const mapPlayerFromBackend = (p, localId) => ({
-    id: p.id,
-    nombre: p.nombre,
-    secretos: [false, false, false], 
-    isLocal: p.id === localId,
+  id: p.id,
+  nombre: p.nombre,
+  secretos: [false, false, false], 
+  isLocal: p.id === localId,
 });
 
 export default function GameScreen({ players }) {
@@ -76,31 +76,31 @@ export default function GameScreen({ players }) {
     let socket; 
 
     const fetchInitialData = async () => {
-        try {
-            // ... (PETICIÓN HTTP GET) ...
-            const res = await fetch(`http://localhost:8000/partidas/${partidaId}/turno/`, {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
+      try {
+        // ... (PETICIÓN HTTP GET) ...
+        const res = await fetch(`http://localhost:8000/partidas/${partidaId}/turno/`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
 
-            let data;
+        let data;
             
-            if (!res.ok) {
-                // ... (Manejo de errores HTTP) ...
-                let errorMessage = `Error HTTP ${res.status}...`;
-                try { const errorData = await res.json(); errorMessage = errorData.detail || errorMessage; } catch (e) { console.error("Error parsing body."); }
-                throw new Error(errorMessage); 
-            }
+        if (!res.ok) {
+          // ... (Manejo de errores HTTP) ...
+          let errorMessage = `Error HTTP ${res.status}...`;
+          try { const errorData = await res.json(); errorMessage = errorData.detail || errorMessage; } catch (e) { console.error("Error parsing body."); }
+            throw new Error(errorMessage); 
+          }
             
-            data = await res.json();
+        data = await res.json();
             
-            // --- CONEXIÓN AL WEB SOCKET ---
-            const wsUrl = `ws://localhost:8000/ws/game/${partidaId}?token=${token}`;
-            socket = new WebSocket(wsUrl);
-            setWs(socket);
+        // --- CONEXIÓN AL WEB SOCKET ---
+        const wsUrl = `ws://localhost:8000/ws/game/${partidaId}?token=${token}`;
+        socket = new WebSocket(wsUrl);
+        setWs(socket);
             
-            socket.onmessage = (event) => {
-                const dataWS = JSON.parse(event.data);
-                //console.log("Mensaje WS recibido:", dataWS);
+        socket.onmessage = (event) => {
+          const dataWS = JSON.parse(event.data);
+          //console.log("Mensaje WS recibido:", dataWS);
 
                 
                 // Manejo de conexión
@@ -117,8 +117,8 @@ export default function GameScreen({ players }) {
                     return; // Importante para evitar procesar como estado_actualizado
                 }
                 
-                if (dataWS.evento === "iniciada" || dataWS.evento === "actualizacion" || dataWS.evento === "estado_actualizado") {
-                  console.log("Payload recibido (simplificado):", dataWS);
+            if (dataWS.evento === "iniciada" || dataWS.evento === "actualizacion" || dataWS.evento === "estado_actualizado") {
+              console.log("Payload recibido (simplificado):", dataWS);
     
                   // 1. CONFÍA en dataWS.payload, que es lo que envían tus logs.
                   const payload = dataWS.payload; 
@@ -152,8 +152,8 @@ export default function GameScreen({ players }) {
                     zona: card.zona
                   }));
     
-                  // 3. USAR SETTERS DEL CONTEXTO PARA CARTAS Y ESTADO
-                  setLocalPlayerCards(mappedMano); // Esto repone la mano
+              // 3. USAR SETTERS DEL CONTEXTO PARA CARTAS Y ESTADO
+              setLocalPlayerCards(mappedMano); // Esto repone la mano
 
                   // ACTUALIZAR CARTAS EN ordenTurnos PARA TurnoIndicator
                   setOrdenTurnos((prev) =>
@@ -166,18 +166,18 @@ export default function GameScreen({ players }) {
 
                   setDiscardPileCards(payload.descarte || []); // Esto actualiza el descarte
                 
-                  setDeckCount(payload.mazo_restante); // Esto actualiza el mazo
+              setDeckCount(payload.mazo_restante); // Esto actualiza el mazo
     
-                  setLocalPlayerId(payload.jugador_id || localPlayerId);
+              setLocalPlayerId(payload.jugador_id || localPlayerId);
 
-                  if (payload.secretos && Array.isArray(payload.secretos)) {
-                    // Almacena el objeto secreto directamente para usar su 'nombre' y renderizar la imagen
-                    setLocalPlayerSecrets(payload.secretos);
-                  }
+              if (payload.secretos && Array.isArray(payload.secretos)) {
+                // Almacena el objeto secreto directamente para usar su 'nombre' y renderizar la imagen
+                  setLocalPlayerSecrets(payload.secretos);
+                }
 
                   setTurnoActualId(payload.turno_actual_id);
                 }
-                  // Lógica específica para "cartas_descartadas" o "jugador_conectado"
+                // Lógica específica para "cartas_descartadas" o "jugador_conectado"
                 else if (dataWS.evento === "cartas_descartadas" || dataWS.evento === "jugador_conectado") {
                   // Solo loguear o manejar eventos mínimos que no requieren actualizar el estado completo.
                   console.log(`Notificación recibida: ${dataWS.evento}`);
@@ -196,9 +196,9 @@ export default function GameScreen({ players }) {
                 }
             };
         } catch (err) {
-            console.error("FALLO CRÍTICO EN CARGA DE PARTIDA:", err.message);
-            setLoading(false);
-            socket?.close(); 
+          console.error("FALLO CRÍTICO EN CARGA DE PARTIDA:", err.message);
+          setLoading(false);
+          socket?.close(); 
         }
     };
 
@@ -219,8 +219,8 @@ export default function GameScreen({ players }) {
   let others = list.filter((p) => !p.isLocal);
 
   if (local) {
-      // ASIGNAR LOS SECRETOS LOCALES (actualizados por WS o estado inicial)
-      local = { ...local, secretos: localPlayerSecrets };
+    // ASIGNAR LOS SECRETOS LOCALES (actualizados por WS o estado inicial)
+    local = { ...local, secretos: localPlayerSecrets };
   } else {
     local = list.length > 0 ? list.find(p => p.id === localPlayerId) || list[0] : emptyPlayer;
     others = list.filter((p) => p.id !== local.id);
@@ -327,8 +327,8 @@ export default function GameScreen({ players }) {
     if (!ws) return;
 
     if (!hasDiscarded) {
-        console.warn("Debe descartar al menos una vez antes de terminar el turno.");
-        return;
+      console.warn("Debe descartar al menos una vez antes de terminar el turno.");
+      return;
     }
 
     const endTurnPayload = {
@@ -336,9 +336,9 @@ export default function GameScreen({ players }) {
     };
 
     try {
-        ws.send(JSON.stringify(endTurnPayload));
-        // NOTA: El backend responderá con "estado_actualizado" que contendrá la mano repuesta
-        setHasDiscarded(false);
+      ws.send(JSON.stringify(endTurnPayload));
+      // NOTA: El backend responderá con "estado_actualizado" que contendrá la mano repuesta
+      setHasDiscarded(false);
     } catch (error) {
         console.error("Error al enviar la acción de terminar turno:", error);
     }
