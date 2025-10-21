@@ -79,46 +79,73 @@ export default function GameScreen({ players }) {
   const [cartaEventoAnotherVictim, setCartaEventoAnotherVictim] =
     useState(null);
 
+  // ✅ MODIFICAR canPlaySet para que delegue la validación completa
   const canPlaySet = useCallback(() => {
-    // Los sets requieren 2 o 3 cartas para ser jugados.
+    if (
+      !ws ||
+      turnoActualId !== localPlayerId ||
+      selectedCardIds.length === 0
+    ) {
+      return false;
+    }
+
     const count = selectedCardIds.length;
-    const isMyTurn = turnoActualId === localPlayerId;
-    return (count === 2 || count === 3) && isMyTurn && ws;
-  }, [selectedCardIds.length, turnoActualId, localPlayerId, ws]);
+
+    if (count === 1) {
+      const carta = localPlayerCards.find((c) =>
+        selectedCardIds.includes(c.id)
+      );
+      return carta?.tipo === "event";
+    }
+
+    if (count >= 2 && count <= 3) {
+      const cartas = localPlayerCards.filter((c) =>
+        selectedCardIds.includes(c.id)
+      );
+      return cartas.every((c) => c.tipo === "detective");
+    }
+
+    return false;
+  }, [selectedCardIds, turnoActualId, localPlayerId, ws, localPlayerCards]);
 
   // Envía la acción de JUGAR SET al backend
   const handlePlaySet = () => {
-    if (!canPlaySet() || !ws) {
-      setPlaySetError("Solo puedes jugar un set de 2 o 3 cartas en tu turno.");
-      console.warn("Intento de jugar set sin cumplir requisitos.");
-      return;
-    }
+    if (!ws) return;
 
     setPlaySetError(null);
 
-    // Obtenemos los IDs y los mapeamos para que el backend pueda validarlos
     const cardsToSend = localPlayerCards
       .filter((card) => selectedCardIds.includes(card.id))
       .map((card) => ({
         id: card.id,
         nombre: card.title,
-        tipo: card.tipo, // Propiedad clave que el backend necesita para validar
+        tipo: card.tipo,
         zona: card.zona,
       }));
 
-    const playSetPayload = {
-      tipo: "jugar",
-      option: "jugar_set",
-      cartas: cardsToSend,
-    };
+    const isEvent = cardsToSend.length === 1 && cardsToSend[0].tipo === "event";
+    const isAnotherVictim =
+      isEvent && cardsToSend[0].nombre === "another_victim";
+
+    const playSetPayload = isEvent
+      ? { tipo: "jugar", option: "jugar_event", carta_id: cardsToSend[0].id }
+      : { tipo: "jugar", option: "jugar_set", cartas: cardsToSend };
+
+    console.log(
+      `[handlePlaySet] ${isEvent ? "Evento" : "Set"}:`,
+      playSetPayload
+    );
+
+    if (isAnotherVictim) {
+      setCartaEventoAnotherVictim(cardsToSend[0].id);
+    }
 
     try {
       ws.send(JSON.stringify(playSetPayload));
-      // NOTA: La actualización del estado de la mano y de localDetectiveSets
-      // ocurrirá cuando el backend envíe el evento 'actualizacion'.
+      if (!isAnotherVictim) setSelectedCardIds([]);
     } catch (error) {
-      console.error("Error al enviar la acción de jugar set:", error);
-      setPlaySetError("Error de conexión al intentar jugar el set.");
+      console.error("[handlePlaySet] Error:", error);
+      setPlaySetError("Error de conexión");
     }
   };
 
@@ -275,12 +302,28 @@ export default function GameScreen({ players }) {
 
           // Solicitud de selección de set para robar
           if (dataWS.evento === "solicitar_seleccion_set") {
-            console.log("[GameScreen] Solicitud de selección de set:", dataWS);
+            console.log(
+              "[GameScreen] Solicitud de selección de set recibida:",
+              dataWS
+            );
 
-            const { carta_evento_id, sets } = dataWS;
+            // Extraer datos del payload o del nivel raíz (compatibilidad)
+            const payload = dataWS.payload || dataWS;
+            const { carta_evento_id, sets } = payload;
 
+            // Validación
+            if (!sets || !Array.isArray(sets) || sets.length === 0) {
+              console.warn("[GameScreen] No hay sets disponibles");
+              alert("No hay sets disponibles para robar");
+              return;
+            }
+
+            console.log("[GameScreen] Sets disponibles:", sets.length);
+            console.log("[GameScreen] Carta evento ID:", carta_evento_id);
+
+            // Actualizar estado
             setCartaEventoAnotherVictim(carta_evento_id);
-            setSetsDisponiblesParaRobar(sets || []);
+            setSetsDisponiblesParaRobar(sets);
             setRobarSetModalOpen(true);
           }
 
@@ -288,7 +331,7 @@ export default function GameScreen({ players }) {
           if (dataWS.evento === "set_robado") {
             console.log("[GameScreen] Set robado exitosamente:", dataWS);
 
-            const { set, request_id } = dataWS;
+            const { set } = dataWS; //, request_id
 
             // Cerrar modal
             setRobarSetModalOpen(false);
@@ -331,7 +374,7 @@ export default function GameScreen({ players }) {
               });
 
               // Mostrar notificación
-              alert(`¡Set robado con éxito! 🎯`);
+              alert(`¡Set robado con éxito!`);
             }
           }
 
