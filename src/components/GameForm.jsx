@@ -9,7 +9,6 @@ const GameForm = () => {
     min_jugadores: "",
     max_jugadores: "",
   });
-  const [errorMsg, setErrorMsg] = useState("");
 
   const navigate = useNavigate();
   // Recupera el token JWT desde localStorage (usado para autenticación en el backend)
@@ -25,45 +24,26 @@ const GameForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-
-    const nombre = formData.nombre;
     const min = parseInt(formData.min_jugadores, 10);
     const max = parseInt(formData.max_jugadores, 10);
 
-    if (!nombre) {
-        setErrorMsg("El nombre de la partida no puede estar vacío.");
-        return;
-    }
-    if (nombre.length > 29) {
-      setErrorMsg("El nombre no puede tener más de 29 caracteres.");
-      return;
-    }
-    if (isNaN(min) || isNaN(max)) {
-      setErrorMsg("Debes ingresar valores válidos para Mín. y Máx. jugadores.");
-      return;
-    }
+    // Validaciones
     if (min < 2) {
-      setErrorMsg("La cantidad mínima de jugadores debe ser al menos 2.");
+      alert("La cantidad mínima de jugadores debe ser al menos 2.");
       return;
     }
     if (max > 6) {
-      setErrorMsg("La cantidad máxima de jugadores no puede superar 6.");
+      alert("La cantidad máxima de jugadores no puede superar 6.");
       return;
     }
     if (min > max) {
-      setErrorMsg("La cantidad mínima no puede ser mayor que la máxima.");
+      alert("La cantidad mínima no puede ser mayor que la máxima.");
       return;
     }
-    if (!token) {
-        setErrorMsg("Error de autenticación: No se encontró la sesión. Por favor, regístrese de nuevo.");
-        return;
-    }
-
-    setErrorMsg(""); 
 
     try {
       // Envía los datos al backend para crear la partida
-      const res = await fetch("http://localhost:8000/partidas/", {
+      const res = await fetch("http://localhost:8000/partidas", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",         // Indica que se envía JSON
@@ -72,30 +52,10 @@ const GameForm = () => {
         body: JSON.stringify(formData),               // Convierte el objeto a JSON
       });
 
-      //Si la respuesta no es exitosa, lanza error
+      // Si la respuesta no es exitosa, lanza error
       if (!res.ok) {
         const errorData = await res.json();
-        let finalErrorMsg = 'Error desconocido al crear partida.';
-
-        if (res.status === 401) {
-             finalErrorMsg = "No autorizado. Por favor, regístrese de nuevo (token no válido).";
-        } else if (res.status === 400 || res.status === 409) {
-             // Maneja errores de Lógica de Negocio (e.g., partida duplicada, 400/409)
-             finalErrorMsg = errorData.detail;
-        } else if (res.status === 422) {
-            // Maneja errores de Validación de Pydantic
-            if (errorData.detail && Array.isArray(errorData.detail) && errorData.detail.length > 0) {
-                // Extrae el primer mensaje de error de validación
-                finalErrorMsg = `Error: ${errorData.detail[0].msg}`;
-            } else {
-                finalErrorMsg = `Error de validación (422). Datos no procesables.`;
-            }
-        } else {
-             // Cualquier otro error HTTP
-             finalErrorMsg = errorData.detail || `Error del servidor: ${res.status}`;
-        }
-
-        throw new Error(finalErrorMsg);
+        throw new Error(errorData.detail || "Error inesperado");
       }
       
       // Extrae el ID de la partida creada desde la respuesta
@@ -107,11 +67,10 @@ const GameForm = () => {
       navigate(`/lobby/${partidaId}`);
     } catch (err) {
       // Muestra el error en consola si algo falla
-      setErrorMsg(err.message);
+      console.error("Error al crear partida:", err);
     }
   };
 
-  
   return (
     <div className="card">
       <h2>Crea una partida</h2>
@@ -122,6 +81,7 @@ const GameForm = () => {
           placeholder="Nombre de la partida"
           value={formData.nombre}
           onChange={handleChange}
+          required
         />
         <input
           type="number"
@@ -129,6 +89,7 @@ const GameForm = () => {
           placeholder="Mínima cantidad de jugadores"
           value={formData.min_jugadores}
           onChange={handleChange}
+          required
         />
         <input
           type="number"
@@ -136,9 +97,9 @@ const GameForm = () => {
           placeholder="Máxima cantidad de jugadores"
           value={formData.max_jugadores}
           onChange={handleChange}
+          required
         />
         <button className="btn-cta" type="submit">Crear</button>
-        {errorMsg && <div className="error-banner">⚠️ {errorMsg}</div>}
       </form>
     </div>
   );

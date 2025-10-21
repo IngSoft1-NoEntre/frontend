@@ -1,17 +1,18 @@
+/* Fondo pantalla centrado */
 .pantalla {
   display: flex;
   justify-content: center;
   flex-direction: column;
   align-items: center;
   height: 100vh;
-  background: #7A1E1E;
+  background: radial-gradient(circle at top left, #1a1a1a, #000);
 }
 
 /* Tarjeta base */
 .card {
   width: 100%;
   max-width: 460px;
-  background: #C19A6B;
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(212, 175, 55, 0.08);
   border-radius: 12px;
   padding: 1.6rem;
@@ -22,20 +23,31 @@
 
 .titulo-agatha {
   font-family: 'Playfair Display', serif;
-  font-size: 4rem;
+  font-size: 4rem; /* antes 3rem */
+  color: var(--gold);
   text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
   margin-bottom: 1.5rem;
-  letter-spacing: 2px;
+  /* margin-top: 1rem; */
+  letter-spacing: 2px; /* más aire entre letras */
   text-align: center;
+  font-family: 'Nosifer', cursive;
   font-size: 4rem;
-  color: white;
+  color: #d4af37;
   text-shadow: 2px 2px 6px rgba(0,0,0,0.8);
+}
+
+.titulo-agatha {
+  font-family: 'UnifrakturCook', cursive;
+  font-size: 4rem;
+  color: #FFD700; /* dorado */
+  text-shadow: 2px 2px 8px rgba(0,0,0,0.9); /* sombra para resaltar */
+  letter-spacing: 2px; /* opcional, para darle más aire */
 }
 
 /* Título */
 .card h2 {
   font-family: 'Playfair Display', serif;
-  color: black;
+  color: var(--gold);
   font-size: 1.6rem;
   margin-bottom: 1rem;
 }
@@ -52,8 +64,8 @@
   padding: 0.7rem 0.9rem;
   border-radius: 8px;
   border: 1px solid rgba(212, 175, 55, 0.08);
-  background: white;
-  color: black;
+  background: #111;
+  color: var(--text);
   font-family: 'Lato', sans-serif;
   font-size: 0.95rem;
   outline: none;
@@ -69,9 +81,10 @@
   appearance: textfield;
 }
 
+/* Focus */
 .game-form input:focus {
-  border-color: black;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+  border-color: var(--gold);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
 }
 
 /* Botón CTA */
@@ -80,15 +93,14 @@
   padding: 0.75rem;
   border-radius: 8px;
   border: none;
-  background: white;
-  color: black;
+  background: var(--gold);
+  color: var(--bg);
   font-weight: 700;
   font-family: 'Lato', sans-serif;
   cursor: pointer;
   transition: transform 0.12s ease, background 0.12s ease;
 }
 .btn-cta:hover {
-  background: #7A1E1E;
+  background: var(--burg);
   transform: translateY(-2px);
 }
-

@@ -1,45 +1,55 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&display=swap");
 
-:root{
-  --bg: #7A1E1E;      /* fondo principal */
-  --panel: #C19A6B;   /* color principal para tarjetas */
-  --panel-light: #FFF8E1; /* fondo inputs / superficies claras */
-  --text-dark: #2E2E2E;   /* texto principal */
-  --text-light: #F8F1E7;/* Fondo pantalla centrado */
+:root {
+  --bg: #0d0d0d;
+  --text: #f8f1e7;
+  --gold: #d4af37;
+  --burg: #6e0e0a;
+  --green: #046307;
+  --panel: #0b1220;
+  --accent: #eab308;
+  --muted: #94a3b8;
+  --card: #ffffff;
 }
 
 /* reset básico */
-*{ box-sizing: border-box; margin:0; padding:0; }
-html,body,#root{ height:100%; }
-body{
-  /* Propiedades añadidas para centrar la imagen */
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100%;
-  /* Fin de propiedades para centrar */
-
-  background-image:url(./assets/home.png);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  background: var(--bg);
   color: var(--text);
-  font-family: 'Merriweather', serif;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
+  font-family: "Merriweather", serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Contenedor principal: divide en 2 mitades */
-.contenedor{
-  display:flex;
-  min-height:100vh;
+.contenedor {
+  display: flex;
+  min-height: 100vh;
 }
 
 /* Izquierda y derecha ocupan la mitad cada una */
 .izquierda,
-.derecha{
-  flex:1;
-  display:flex;
-  justify-content:center; /* centra horizontalmente el contenido */
-  align-items:center;     /* centra verticalmente */
+.derecha {
+  flex: 1;
+  display: flex;
+  justify-content: center; /* centra horizontalmente el contenido */
+  align-items: center; /* centra verticalmente */
   padding: 2.5rem;
-  gap:1rem;
-  box-sizing:border-box;
+  gap: 1rem;
+  box-sizing: border-box;
 }
 
+/* separación dorada entre secciones */
+.izquierda {
+  border-right: 2px solid rgba(212, 175, 55, 0.12);
+}

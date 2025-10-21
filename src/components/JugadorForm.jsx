@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../components/JugadorForm.css';
 
 function JugadorForm() {
@@ -11,32 +11,6 @@ function JugadorForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-      //manejo de errores del frontend
-      // Validaciones antes de enviar
-      if (nombre.trim() === "") {
-            setErrorMsg("El nombre no puede estar vacío.");
-            return;
-        }
-      if (nombre.length > 29) {
-        setErrorMsg("El nombre no puede tener más de 29 caracteres");
-        return;
-      }
-
-      if (/^\d+$/.test(nombre)) {
-        setErrorMsg("El nombre no puede ser solo números");
-        return;
-      }
-      if (!fechaNacimiento) {
-            setErrorMsg("La fecha de nacimiento no puede estar vacía");
-            return;
-        }
-      const today = new Date().toISOString().split('T')[0];
-      if (fechaNacimiento > today) {
-          setErrorMsg("La fecha de nacimiento debe ser una fecha válida.");
-          return;
-      }
-      // Si pasa las validaciones, limpiar errores
-      setErrorMsg("");
 
     try {
       const res = await fetch('http://localhost:8000/auth/jugadores/', {
@@ -47,33 +21,18 @@ function JugadorForm() {
           fecha_nacimiento: fechaNacimiento
         })
       });
-      //manejo de errores del backend
+
       if (!res.ok) {
         const errorData = await res.json();
-        let finalErrorMsg = 'Error al crear jugador.';
-
-        if (res.status === 400 || res.status === 409) {
-          finalErrorMsg = errorData.detail;
-          
-        } else if (res.status === 422) {
-          if (errorData.detail && Array.isArray(errorData.detail) && errorData.detail.length > 0) {
-                finalErrorMsg = `Error de validación: ${errorData.detail[0].msg}`;
-            } else {
-              finalErrorMsg = `Error de validación (422). Datos no procesables.`;
-            }
-          } else {
-            // Cualquier otro error HTTP
-            finalErrorMsg = errorData.detail || `Error del servidor: ${res.status}`;
-          }
-          throw new Error(finalErrorMsg);
+        throw new Error(errorData.detail || 'Error al crear jugador');
       }
-      //exito
+
       const data = await res.json();
       console.log('Respuesta del backend-JugadorForm:', data);
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('usuario', nombre);
 
-      navigate('/home');
+      navigate('/home'); // redirige a home
     } catch (error) {
       console.error('Error en el Registro de Jugador:', error);
       // mostrar un mensaje por pantalla
@@ -93,14 +52,14 @@ function JugadorForm() {
             placeholder="Nombre"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            
+            required
           />
           <input
             type="date"
             value={fechaNacimiento}
             aria-label="Fecha de nacimiento"
             onChange={(e) => setFechaNacimiento(e.target.value)}
-            
+            required
           />
           {errorMsg && <div className="error-banner">⚠️ {errorMsg}</div>}
           <button type="submit" className="btn-cta">Enviar</button>

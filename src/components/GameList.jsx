@@ -22,7 +22,6 @@ const GameList = () => {
     try {
       const response = await fetch("http://localhost:8000/partidas", {
         headers: {
-          "Content-Type": "application/json",  // Indica que se envía JSON
           Authorization: `Bearer ${token}`,
         },
       });
@@ -45,8 +44,8 @@ const GameList = () => {
   useEffect(() => {
     cargarPartidas();
 
-    // Actualizar cada 10 segundos
-    const interval = setInterval(cargarPartidas, 10000);
+    // Actualizar cada 5 segundos
+    const interval = setInterval(cargarPartidas, 5000);
 
     return () => clearInterval(interval);
   }, []);

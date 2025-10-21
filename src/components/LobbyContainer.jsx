@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./LobbyContainer.css"; // Estilos personalizados para el lobby
 import { jwtDecode } from "jwt-decode";
-import lobby from  "../assets/lobby.png";
+import lobby from  "../assets/img/lobby.png";
 
 const LobbyContainer = () => {
   // Obtiene el ID de la partida desde la URL
@@ -118,7 +118,6 @@ const LobbyContainer = () => {
       {lobbyErrorMsg && <div className="error-banner">⚠️ {lobbyErrorMsg}</div>}
 
       {/* Lista de jugadores conectados */}
-      <p><strong>Jugadores conectados:</strong> {jugadores.length}</p>
       <ul>
         {jugadores.map((j, i) => (
         <li key={i}>

@@ -1,0 +1,27 @@
+.deck-pile {
+  width: 66px;
+  height: auto;
+  border-radius: 8px;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.deck-pile-graphic {
+  width: 48px;
+  height: 64px;
+  background-image: url('../assets/Cartas/01-card_back.png');
+  background-size: cover; 
+  background-position: center; 
+  background-repeat: no-repeat;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+.deck-pile-count {
+  margin-top: 6px;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 12px;
+}

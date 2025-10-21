@@ -1,21 +1,15 @@
 import React from "react";
-import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, vi, expect} from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 import GameForm from "../components/GameForm";
 
-const mockNavigate = vi.fn();
-vi.mock("react-router-dom", () => ({ useNavigate: () => mockNavigate }));
+// Mock de useNavigate para que no rompa al llamar navigate
+vi.mock("react-router-dom", () => ({
+  useNavigate: () => vi.fn(),
+}));
 
-describe("GameForm integration", () => {
-  beforeEach(() => {
-    window.localStorage.setItem("token", "tok");
-    global.fetch = vi.fn();
-  });
-  afterEach(() => {
-    vi.restoreAllMocks();
-    window.localStorage.clear();
-  });
-  //En el it te describe lo que hace el test
+describe("GameForm", () => {
+  //En el it sedescribe lo que hace el test
   it("renderiza todos los inputs y el botón", () => {
     render(<GameForm />);
     expect(screen.getByText(/Crea una partida/i)).toBeInTheDocument();
@@ -40,72 +34,30 @@ describe("GameForm integration", () => {
     expect(maxInput.value).toBe("5");
   });
 
-  it("valida las reglas del formulario y muestra errores en pantalla", async () => {
-    render(<GameForm />);
-
-    // Nombre demasiado largo
-    fireEvent.change(screen.getByPlaceholderText(/Nombre de la partida/i), {
-      target: { value: "Los increiblesssssssssssssssss" },
-    });
-    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), {
-      target: { value: "2" },
-    });
-    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), {
-      target: { value: "2" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Crear/i }));
-    expect(await screen.findByText(/El nombre no puede tener más de 29 caracteres/i)).toBeInTheDocument();
-
-    // Corregir nombre para siguientes validaciones
-    fireEvent.change(screen.getByPlaceholderText(/Nombre de la partida/i), {
-      target: { value: "Partida válida" },
-    });
-
-    // Mínimo < 2
-    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), {
-      target: { value: "1" },
-    });
-    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), {
-      target: { value: "4" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Crear/i }));
-    expect(await screen.findByText(/La cantidad mínima de jugadores debe ser al menos 2/i)).toBeInTheDocument();
-
-    // Máximo > 6
-    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), {
-      target: { value: "2" },
-    });
-    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), {
-      target: { value: "7" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Crear/i }));
-    expect(await screen.findByText(/La cantidad máxima de jugadores no puede superar 6/i)).toBeInTheDocument();
-
-    // Mínimo > Máximo
-    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), {
-      target: { value: "5" },
-    });
-    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), {
-      target: { value: "4" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Crear/i }));
-    expect(await screen.findByText(/La cantidad mínima no puede ser mayor que la máxima/i)).toBeInTheDocument();
-  });
-
-
-  it("envía fetch y navega cuando todo OK", async () => {
-    global.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ id: 77 }),
-    });
+  it("valida las reglas del formulario y muestra alertas", () => {
+    const alertMock = vi.spyOn(window, "alert").mockImplementation(() => {});
 
     render(<GameForm />);
-    fireEvent.change(screen.getByPlaceholderText(/Nombre de la partida/i), { target: { value: "P" } });
+    const form = screen.getByRole("form");
+
+    // min < 2
+    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), { target: { value: "1" } });
+    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), { target: { value: "4" } });
+    fireEvent.submit(screen.getByRole("button", { name: /Crear/i }));
+    expect(alertMock).toHaveBeenCalledWith("La cantidad mínima de jugadores debe ser al menos 2.");
+
+    // max > 6
     fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), { target: { value: "2" } });
-    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), { target: { value: "6" } });
-    fireEvent.click(screen.getByRole("button", { name: /Crear/i }));
+    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), { target: { value: "7" } });
+    fireEvent.submit(screen.getByRole("button", { name: /Crear/i }));
+    expect(alertMock).toHaveBeenCalledWith("La cantidad máxima de jugadores no puede superar 6.");
 
-    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
-    expect(mockNavigate).toHaveBeenCalledWith("/lobby/77");
+    // min > max
+    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), { target: { value: "5" } });
+    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), { target: { value: "4" } });
+    fireEvent.submit(screen.getByRole("button", { name: /Crear/i }));
+    expect(alertMock).toHaveBeenCalledWith("La cantidad mínima no puede ser mayor que la máxima.");
+  
+    alertMock.mockRestore();
   });
 });
