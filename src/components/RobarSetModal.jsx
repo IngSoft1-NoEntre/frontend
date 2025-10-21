@@ -2,14 +2,6 @@ import React, { useState } from "react";
 import "./RobarSetModal.css";
 import Card from "./Card";
 
-/**
- * Modal para seleccionar un set de detectives a robar con "Another Victim"
- *
- * @param {Array} setsDisponibles - Sets de otros jugadores
- *   [{id, owner_id, owner_nombre, cartas: [{id, nombre, tipo}]}]
- * @param {Function} onConfirm - Callback (setId, ownerId) => void
- * @param {Function} onCancel - Callback () => void
- */
 export default function RobarSetModal({
   setsDisponibles,
   onConfirm,
@@ -30,79 +22,58 @@ export default function RobarSetModal({
   };
 
   return (
-    <div className="modal-overlay" onClick={(e) => e.stopPropagation()}>
-      <div className="robar-set-modal">
-        <div className="modal-header">
-          <h2>🎯 Another Victim</h2>
-          <p className="modal-subtitle">
-            Selecciona un set de detectives para robar
-          </p>
-        </div>
+    <div className="modal-overlay-robar" onClick={onCancel}>
+      <div className="robar-modal-compact" onClick={(e) => e.stopPropagation()}>
+        <h3 className="modal-title-compact">Robar Set</h3>
 
-        <div className="sets-list">
+        <div className="sets-list-compact">
           {setsDisponibles.length === 0 ? (
-            <div className="no-sets-available">
-              <p>😔 No hay sets disponibles para robar</p>
-              <button onClick={onCancel} className="btn-cancel-solo">
-                Cerrar
-              </button>
-            </div>
+            <p className="no-sets-msg">No hay sets disponibles</p>
           ) : (
             setsDisponibles.map((set) => (
               <div
                 key={set.id}
-                className={`set-item ${
+                className={`set-compact ${
                   selectedSetId === set.id ? "selected" : ""
                 }`}
                 onClick={() => setSelectedSetId(set.id)}
               >
-                <div className="set-header">
-                  <div className="set-info">
-                    <strong className="owner-name">{set.owner_nombre}</strong>
-                    <span className="set-size">
-                      {set.cartas?.length || 0} cartas
-                    </span>
-                  </div>
-                  {selectedSetId === set.id && (
-                    <span className="check-icon">✓</span>
-                  )}
-                </div>
+                <div className="set-owner-compact"> {set.owner_nombre}</div>
 
-                <div className="set-cards-preview">
+                <div className="set-cards-compact">
                   {set.cartas &&
                     set.cartas.map((carta) => (
-                      <div key={carta.id} className="card-mini-wrapper">
+                      <div key={carta.id} className="mini-card">
                         <Card
                           cardname={carta.nombre || "card_back"}
                           faceUp={true}
                           isSelectable={false}
                           isSelected={false}
                         />
-                        <span className="card-name-label">
-                          {carta.nombre?.replace(/_/g, " ")}
-                        </span>
                       </div>
                     ))}
                 </div>
+
+                {selectedSetId === set.id && (
+                  <div className="check-compact">✓</div>
+                )}
               </div>
             ))
           )}
         </div>
 
-        {setsDisponibles.length > 0 && (
-          <div className="modal-actions">
-            <button onClick={onCancel} className="btn-cancel">
-              Cancelar
-            </button>
-            <button
-              onClick={handleConfirm}
-              className="btn-confirm"
-              disabled={!selectedSetId}
-            >
-              Robar Set Seleccionado
-            </button>
-          </div>
-        )}
+        <div className="buttons-compact">
+          <button onClick={onCancel} className="btn-cancel-compact">
+            Cancelar
+          </button>
+          <button
+            onClick={handleConfirm}
+            className="btn-confirm-compact"
+            disabled={!selectedSetId}
+          >
+            Robar
+          </button>
+        </div>
       </div>
     </div>
   );
