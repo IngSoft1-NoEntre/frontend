@@ -22,6 +22,7 @@ const GameList = () => {
     try {
       const response = await fetch("http://localhost:8000/partidas", {
         headers: {
+          "Content-Type": "application/json",  // Indica que se envía JSON
           Authorization: `Bearer ${token}`,
         },
       });

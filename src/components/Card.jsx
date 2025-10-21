@@ -11,6 +11,7 @@ const Card = ({
     onSelect,
     className          
 }) => {
+  // console.log("Renderizando carta:", cardname);
 
   if (!cardname) {
     //Se establece una className para determinar que la carta

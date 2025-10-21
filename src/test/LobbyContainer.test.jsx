@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import LobbyContainer from "../components/LobbyContainer";
 import { BrowserRouter } from "react-router-dom";
 import { vi } from "vitest";
+=======
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import LobbyContainer from '../components/LobbyContainer';
+import { BrowserRouter } from 'react-router-dom';
+import { vi } from 'vitest';
+>>>>>>> feature_ING-66_visualizar_cartas_descarte
 
 // Mocks globales
 const navigateMock = vi.fn();
@@ -212,4 +219,8 @@ describe("LobbyContainer - Owner", () => {
       );
     });
   });
+<<<<<<< HEAD
+=======
+
+>>>>>>> feature_ING-66_visualizar_cartas_descarte
 });

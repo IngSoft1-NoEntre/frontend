@@ -10,6 +10,9 @@ import FinishGameModal from "./FinishGameModal";
 import SecretModal from "./SecretModal";
 import TurnoIndicator from "./TurnoIndicator";
 import DetectiveSets from "./DetectiveSets";
+import DiscardModal from './DiscardModal';
+
+const TOTAL_CARDS = 43;
 
 /**
  * GameScreen dinámico: acepta `players`
@@ -57,6 +60,7 @@ export default function GameScreen({ players }) {
   const [localPlayerId, setLocalPlayerId] = useState(null);
   const [turnoActualId, setTurnoActualId] = useState(null);
   const [hasDiscarded, setHasDiscarded] = useState(false);
+  const [totalCards, setTotalCards] = useState(0)
 
   // ESTADOS SECUNDARIOS
   const [loading, setLoading] = useState(true);
@@ -72,51 +76,77 @@ export default function GameScreen({ players }) {
   const [playSetError, setPlaySetError] = useState(null);
   const [activeSetModalData, setActiveSetModalData] = useState(null);
 
-  const canPlaySet = useCallback(() => {
-        // Los sets requieren 2 o 3 cartas para ser jugados.
-        const count = selectedCardIds.length;
-        const isMyTurn = turnoActualId === localPlayerId;
-        return (count === 2 || count === 3) && isMyTurn && ws;
-    }, [selectedCardIds.length, turnoActualId, localPlayerId, ws]);
+  // Envía la acción de JUGAR SET o EVENTO al backend (Función Unificada)
+  const handlePlayAction = () => {
+    const count = selectedCardIds.length;
+    const isMyTurn = turnoActualId === localPlayerId;
 
-// Envía la acción de JUGAR SET al backend
-  const handlePlaySet = () => {
-
-    if (!canPlaySet() || !ws) {
-            setPlaySetError("Solo puedes jugar un set de 2 o 3 cartas en tu turno.");
-            console.warn("Intento de jugar set sin cumplir requisitos.");
-            return;
-        }
+    if (!isMyTurn || !ws) {
+        setPlaySetError("No es tu turno o la conexión está caída.");
+        return;
+    }
+    
+    if (count === 0) {
+        setPlaySetError("Debes seleccionar al menos una carta para jugar.");
+        return;
+    }
 
     setPlaySetError(null);
 
-    // Obtenemos los IDs y los mapeamos para que el backend pueda validarlos
-    const cardsToSend = localPlayerCards
-        .filter(card => selectedCardIds.includes(card.id))
-        .map(card => ({
-            id: card.id,
-            nombre: card.title,
-            tipo: card.tipo, // Propiedad clave que el backend necesita para validar
-            zona: card.zona
-        }));
+    let payload;
+    let actionName = ""; // Para logging y errores
 
-    const playSetPayload = {
-      tipo: "jugar", 
-      option: "jugar_set", 
-      cartas: cardsToSend
-    };
+    if (count === 1 && selectedCard?.title === "look_into_the_ashes") {
+        // 1. ES JUGADA DE EVENTO (Look into the Ashes)
+        actionName = "Evento";
+        payload = {
+            tipo: "jugar",
+            option: "jugar_event",
+            carta_id: selectedCard.id // Solo necesita el ID
+        };
+    } else if (count === 2 || count === 3) {
+        // 2. ES JUGADA DE SET (2 o 3 cartas)
+        actionName = "Set";
+        const cardsToSend = localPlayerCards
+            .filter(card => selectedCardIds.includes(card.id))
+            .map(card => ({
+                id: card.id,
+                nombre: card.title,
+                tipo: card.tipo, // Propiedad clave que el backend necesita para validar
+                zona: card.zona
+            }));
 
+        payload = {
+          tipo: "jugar", 
+          option: "jugar_set", 
+          cartas: cardsToSend
+        };
+    } else {
+        // 3. JUGADA INVÁLIDA (e.g., 1 carta que no es el evento, o 4+ cartas)
+        setPlaySetError(`Selección inválida. Juega un Set (${count === 0 ? 'ninguna seleccionada' : `${count} seleccionadas`}) o la carta de Evento 'Look into the Ashes' (1).`);
+        return;
+    }
+
+    // Envío al backend
     try {
-      ws.send(JSON.stringify(playSetPayload));
-      // NOTA: La actualización del estado de la mano y de localDetectiveSets 
-      // ocurrirá cuando el backend envíe el evento 'actualizacion'.
+      console.log(`Enviando ${actionName} al backend...`);
+      ws.send(JSON.stringify(payload));
+      
+      // Si es un evento de una sola carta (que se consume), limpiamos la selección aquí.
+      if (count === 1) {
+        setSelectedCardIds([]);
+      }
       
     } catch (error) {
-      console.error("Error al enviar la acción de jugar set:", error);
-      setPlaySetError("Error de conexión al intentar jugar el set.");
+      console.error("Error al enviar la acción de jugar:", error);
+      setPlaySetError(`Error de conexión al intentar jugar ${actionName}.`);
     }
   };
 
+  // Estados para ver las primeras cartas del mazo de descarte.  add
+  const [privateCards, setPrivateCards] = useState([]);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const selectedCard = localPlayerCards.find(card => selectedCardIds.includes(card.id));
 
   useEffect(() => {
     if (!partidaId || !token) return;
@@ -219,7 +249,7 @@ export default function GameScreen({ players }) {
                   // Si por alguna razón crítica no viene, usamos un objeto vacío para evitar crashes.
                   if (!payload) {
                     console.error(`Evento ${dataWS.evento} recibido sin payload.`);
-                  return; // Salir si no hay datos.
+                    return; // Salir si no hay datos.
                   }
                   
                   //Actualizar contexto
@@ -237,7 +267,7 @@ export default function GameScreen({ players }) {
     
                   // Obtener y mapear la mano
                   const rawMano = payload.mano || [];
-
+                  
                   const mappedMano = rawMano.map(card => ({
                     id: card.id,
                     title: card.nombre || "card_back", 
@@ -245,8 +275,8 @@ export default function GameScreen({ players }) {
                     zona: card.zona
                   }));
     
-              // Usar setter del contexto para cartas y estado
-              setLocalPlayerCards(mappedMano); // Esto repone la mano
+                  // Usar setter del contexto para cartas y estado
+                  setLocalPlayerCards(mappedMano); // Esto repone la mano
 
                   // ACTUALIZAR CARTAS EN ordenTurnos PARA TurnoIndicator
                   setOrdenTurnos((prev) =>
@@ -259,14 +289,20 @@ export default function GameScreen({ players }) {
 
                   setDiscardPileCards(payload.descarte || []); // Esto actualiza el descarte
                 
-              setDeckCount(payload.mazo_restante); // Esto actualiza el mazo
+                  setDeckCount(payload.mazo_restante); // Esto actualiza el mazo
     
-              setLocalPlayerId(payload.jugador_id || localPlayerId);
+                  setLocalPlayerId(payload.jugador_id || localPlayerId);
+              
+                  setTotalCards(payload.mazo_restante) // total de cards en el mazo
 
-              if (payload.secretos && Array.isArray(payload.secretos)) {
-                // Almacena el objeto secreto directamente para usar su 'nombre' y renderizar la imagen
-                  setLocalPlayerSecrets(payload.secretos);
-                }
+                  if (payload.secretos && Array.isArray(payload.secretos)) {
+                    // Almacena el objeto secreto directamente para usar su 'nombre' y renderizar la imagen
+                    setLocalPlayerSecrets(payload.secretos);
+                  }
+                  if (payload.mazo_restante !== undefined) {
+                    // Solo si es la primera vez (totalCards es 0)
+                    setTotalCards(payload.mazo_restante + (payload.descarte?.length || 0)); 
+                  } 
 
                   setTurnoActualId(payload.turno_actual_id);
                   setPlaySetError(null);
@@ -282,9 +318,9 @@ export default function GameScreen({ players }) {
                 // Lógica específica para "cartas_descartadas" o "jugador_conectado"
                 else if (dataWS.evento === "cartas_descartadas" || dataWS.evento === "jugador_conectado") {
                   // Solo loguear o manejar eventos mínimos que no requieren actualizar el estado completo.
-                  console.log(`Notificación recibida: ${dataWS.evento}`);
+                  // console.log(`Notificación recibida: ${dataWS.evento}`);
                 }
-                // EVENTO: salto_turno
+                // Evento: selecciona una al azar y la descarta y luego se le asigna delmazo regular
                 else if (dataWS.evento === "salto_turno") {
                   console.log(
                   "[GameScreen] Turno saltado, esperando actualización..."
@@ -296,6 +332,19 @@ export default function GameScreen({ players }) {
                   "[GameScreen] Turno terminado, esperando actualización..."
                   );
                 }
+                // Evento: Look into the ashes
+                else if (dataWS.evento === "ver_descarte_privado") { // add
+                  console.log("Cartas recibidas:", dataWS.payload.cartas);
+                  const mappedCartas = dataWS.payload.cartas.map(card => ({
+                    id: card.id,
+                    title: card.nombre || "card_back", // esto asegura que Card reciba 'title'
+                    tipo: card.tipo,
+                    zona: "descarte" // o lo que corresponda
+                  }));
+                  setPrivateCards(mappedCartas); // cartas del descarte
+                  setShowDiscardModal(true);
+                }
+
             };
         } catch (err) {
           console.error("FALLO CRÍTICO EN CARGA DE PARTIDA:", err.message);
@@ -491,8 +540,38 @@ export default function GameScreen({ players }) {
     }
   };
 
+  // maneja la carta de evento
+  const handlePlayEvent = () => {
+    if (!selectedCard || selectedCard.title !== "look_into_the_ashes") {
+      console.warn("La carta seleccionada no es 'Look in the Ashes'");
+      return;
+    }
+    if (!ws) return; 
+
+    ws.send(JSON.stringify({
+      tipo: "jugar",
+      option: "jugar_event",
+      carta_id: selectedCard.id
+    }));
+    // Limpiar selección:
+    setSelectedCardIds([]); 
+  };
+
+
+
+
   const secretFrontUrl = cardPictures["varios"];
   const secretBackUrl = cardPictures["secret_back"];
+
+  // useEffect para observar cambios en privateCards
+  useEffect(() => {
+    console.log("console del useEffect, Cartas privadas actualizadas:", privateCards);
+  }, [privateCards]);
+
+  // seEffect para observar cambios en privateCards
+  useEffect(() => {
+    console.log("Modal de descarte actualizado:", showDiscardModal);
+  }, [showDiscardModal]);
   
   return (
     <div className="game-root">
@@ -556,7 +635,7 @@ export default function GameScreen({ players }) {
           <Deck
             discardCards={discardPileCards}
             deckCount={deckCount}
-            totalCards={TOTAL_CARDS_CONTEXT}
+            totalCards={TOTAL_CARDS}
           />
         </div>
         
@@ -594,48 +673,50 @@ export default function GameScreen({ players }) {
             </div>
           </div>
         </div>
-        <SecretModal item={openSecret} onClose={closeSecretModal} />
-        <div>
-        <TurnoIndicator
+      </div>
+
+      {/* Elementos flotantes (Modales, Indicador de Turno, Errores) */}
+      <SecretModal item={openSecret} onClose={closeSecretModal} />
+      {showDiscardModal && (
+          <DiscardModal
+            cards={privateCards}
+            onClose={() => setShowDiscardModal(false)}
+          />
+      )}
+      <TurnoIndicator
           ordenTurnos={ordenTurnos}
           turnoActualId={gameState.turno_actual_id}
           localPlayerId={localPlayerId}
           onDescartar={handleDiscard}
           onSaltarTurno={handleSkipTurn}
           onTerminarTurno={handleEndTurn}
-          onPlaySet={handlePlaySet}
-          canPlaySet={canPlaySet()}
+          onPlaySet={handlePlayAction}
+          canPlaySet={selectedCardIds.length > 0} 
+          onPlayEvent={handlePlayEvent}
+      />
+      {/* SecretModal reutilizado para ver el set de detectives */}
+      {activeSetData && (
+        <SecretModal 
+          item={activeSetData} 
+          onClose={closeSetModal} 
+          cardPictures={cardPictures} 
         />
-        {/* SecretModal reutilizado para ver el set de detectives */}
-        {activeSetData && (
-          <SecretModal 
-            item={activeSetData} 
-            onClose={closeSetModal} 
-            cardPictures={cardPictures} 
-          />
-        )}
-        {/* Visualización de error de jugada */}
-        {playSetError && (
-            <div className="game-message error-message">
-                <p>⚠️ Error al jugar el set: {playSetError}</p>
-                <button 
-                  onClick={() => setPlaySetError(null)} 
-                  className="btn-close-error"
-                >
-                  Cerrar
-                </button>
-            </div>
-        )}
-        {isGameOverModalOpen && (
-          <FinishGameModal
-            onClose={closeGameOverModal}
-          />
-        )}
-        </div>
-      </div>
-        {isGameOverModalOpen && (
+      )}
+      {/* Visualización de error de jugada */}
+      {playSetError && (
+          <div className="game-message error-message">
+              <p>⚠️ Error al jugar el set: {playSetError}</p>
+              <button 
+                onClick={() => setPlaySetError(null)} 
+                className="btn-close-error"
+              >
+                Cerrar
+              </button>
+          </div>
+      )}
+      {isGameOverModalOpen && (
         <FinishGameModal onClose={closeGameOverModal} partidaId={partidaId} />
-        )}
-    </div>
+      )}
+    </div> 
   );
 }

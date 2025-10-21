@@ -60,6 +60,10 @@ describe("JugadorForm", () => {
     expect(localStorage.setItem).toHaveBeenCalledWith("token", "mock-token");
     expect(localStorage.setItem).toHaveBeenCalledWith("usuario", "Bianca");
   });
+<<<<<<< HEAD
+=======
+
+>>>>>>> feature_ING-66_visualizar_cartas_descarte
 
   test("muestra error si el nombre supera los 29 caracteres", async () => {
     const user = userEvent.setup();
