@@ -12,20 +12,6 @@ function JugadorForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-      // Validaciones antes de enviar
-      if (nombre.length > 29) {
-        setErrorMsg("El nombre no puede tener más de 29 caracteres");
-        return;
-      }
-
-      if (/^\d+$/.test(nombre)) {
-        setErrorMsg("El nombre no puede ser solo números");
-        return;
-      }
-
-      // Si pasa las validaciones, limpiar errores
-      setErrorMsg("");
-
     try {
       const res = await fetch('http://localhost:8000/auth/jugadores/', {
         method: 'POST',

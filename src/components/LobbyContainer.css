@@ -52,7 +52,7 @@ button {
   transition: background-color 0.3s ease;
 }
 
-button:hover {
+.iniciar-partida:hover {
   background-color: var(--green);
   color: var(--text);
 }

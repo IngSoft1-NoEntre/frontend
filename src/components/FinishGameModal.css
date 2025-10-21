@@ -1,0 +1,72 @@
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85); 
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200; 
+}
+
+.finish-game-modal {
+    background: #1e1e1e;
+    color: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+    text-align: center;
+    max-width: 400px;
+    border: 3px solid #c72c41;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Título del Modal */
+.finish-game-modal h2 {
+    color: #c72c41; 
+    margin-bottom: 20px;
+    font-size: 2.2em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Párrafo de Descripción */
+.finish-game-modal p {
+    margin-bottom: 30px;
+    font-size: 1.1em;
+    line-height: 1.4;
+    color: #ccc;
+}
+
+/* Botón de Acción ("Volver a Jugar") */
+.btn-play-again {
+    padding: 12px 30px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #1e1e1e; 
+    background-color: #eee;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-play-again:hover {
+    background-color: black;
+    transform: scale(1.05);
+}
+
+/* 6. Animación */
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(-30px);
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}

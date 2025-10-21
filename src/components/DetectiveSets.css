@@ -1,0 +1,54 @@
+.detective-set-card{
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border 0.2s ease-out;
+  cursor: pointer;
+}
+
+/* Efecto de Hover */
+.detective-set-card:hover {
+  transform: translateY(-8px) scale(1.05);
+
+}
+
+/* Efecto Seleccionado ) */
+.detective-set-card.ctrl-active {
+  border: 2px solid #ff9500; 
+  transform: translateY(-8px) scale(1.1);
+
+}
+.detective-sets-container {
+  margin: 0;
+  display: flex;
+  gap: 20px; 
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+  margin-bottom: 12px; /* Separación de la mano */
+}
+
+.detective-set {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+}
+
+/* Estilos de las cartas de DetectiveSets */
+.detective-set-card{
+  width: 48px;
+  height: 64px; 
+  border-radius: 6px;
+  margin-right: -25px; 
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  background-position: center;
+  position: relative;
+  z-index: 10; 
+}
+
+/* El solapamiento de la última carta debe ser eliminado para que no se salga */
+.detective-set-card:last-child {
+  margin-right: 0;
+  z-index: 12;
+}
+
+
