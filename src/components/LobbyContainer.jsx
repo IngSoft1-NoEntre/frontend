@@ -118,6 +118,7 @@ const LobbyContainer = () => {
       {lobbyErrorMsg && <div className="error-banner">⚠️ {lobbyErrorMsg}</div>}
 
       {/* Lista de jugadores conectados */}
+      <p><strong>Jugadores conectados:</strong> {jugadores.length}</p>
       <ul>
         {jugadores.map((j, i) => (
         <li key={i}>
