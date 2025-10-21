@@ -10,13 +10,13 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useParams: () => ({ partidaId: 'abc123' }),
+    useParams: () => ({ partidaId: 1 }),
     useNavigate: () => navigateMock,
   };
 });
 
 vi.mock('jwt-decode', () => ({
-  jwtDecode: () => ({ sub: '1' }),
+  jwtDecode: () => ({ sub: 1 }),
 }));
 
 vi.stubGlobal('localStorage', {
@@ -27,7 +27,6 @@ describe('LobbyContainer - Owner', () => {
   beforeEach(() => {
     vi.clearAllMocks();           // Limpia todos los mocks
     global.fetch = vi.fn();       // Reinicia el mock de fetch
-    // window.alert = vi.fn();       // Reinicia el mock de alert
   });
   test('renderiza nombre de la partida y jugadores', async () => {
     global.WebSocket = class {
@@ -35,13 +34,13 @@ describe('LobbyContainer - Owner', () => {
         setTimeout(() => {
           this.onmessage?.({
             data: JSON.stringify({
-              evento: 'actualizacion_lobby',
+              evento: "actualizacion_lobby",
               partida: {
-                nombre: 'Partida Test',
-                owner_id: '1',
+                nombre: "Partida Test",
+                owner_id: 1,
                 jugadores: [
-                  { id: '1', nombre: 'Veronica' },
-                  { id: '2', nombre: 'Bianca' },
+                  { id: 1, nombre: "Veronica" },
+                  { id: 2, nombre: "Bianca" },
                 ],
               },
             }),
@@ -69,11 +68,11 @@ describe('LobbyContainer - Owner', () => {
         setTimeout(() => {
           this.onmessage?.({
             data: JSON.stringify({
-              evento: 'actualizacion_lobby',
+              evento: "actualizacion_lobby",
               partida: {
-                nombre: 'Partida Test',
-                owner_id: '1',
-                jugadores: [{ id: '1', nombre: 'Veronica' }],
+                nombre: "Partida Test",
+                owner_id: 1,
+                jugadores: [{ id: 1, nombre: "Veronica" }],
               },
             }),
           });
@@ -98,8 +97,8 @@ describe('LobbyContainer - Owner', () => {
         setTimeout(() => {
           this.onmessage?.({
             data: JSON.stringify({
-              evento: 'iniciada',
-              partida: { estado: 'iniciada' },
+              evento: "iniciada",
+              partida: { estado: "iniciada" },
             }),
           });
         }, 100);
@@ -114,7 +113,7 @@ describe('LobbyContainer - Owner', () => {
     );
 
     await waitFor(() => {
-      expect(navigateMock).toHaveBeenCalledWith('/juego/abc123');
+      expect(navigateMock).toHaveBeenCalledWith('/juego/1');
     });
   });
 
@@ -127,11 +126,11 @@ describe('LobbyContainer - Owner', () => {
         setTimeout(() => {
           this.onmessage?.({
             data: JSON.stringify({
-              evento: 'actualizacion_lobby',
+              evento: "actualizacion_lobby",
               partida: {
-                nombre: 'Partida Test',
-                owner_id: '1',
-                jugadores: [{ id: '1', nombre: 'Veronica' }],
+                nombre: "Partida Test",
+                owner_id: 1,
+                jugadores: [{ id: 1, nombre: "Veronica" }],
               },
             }),
           });
@@ -151,7 +150,7 @@ describe('LobbyContainer - Owner', () => {
     expect(fetchMock).toHaveBeenCalled();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:8000/partidas/abc123/iniciar',
+      'http://localhost:8000/partidas/1/iniciar',
       expect.objectContaining({
         method: 'PATCH',
         headers: expect.objectContaining({
@@ -162,45 +161,55 @@ describe('LobbyContainer - Owner', () => {
     );
   });
 
-  //   test('muestra alert si el backend devuelve error al iniciar partida', async () => {
-  //   global.fetch = vi.fn(() =>
-  //     Promise.resolve({
-  //       ok: false,
-  //       status: 403,
-  //       json: async () => ({ detail: 'Solo el owner puede iniciar la partida' }),
-  //     })
-  //   );
+  test("muestra mensaje de error si el backend devuelve error al iniciar partida", async () => {
+    // Mock del fetch con error 403
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 403,
+        json: async () => ({ detail: "Solo el owner puede iniciar la partida" }),
+      })
+    );
 
-  //   global.WebSocket = class {
-  //     constructor() {
-  //       setTimeout(() => {
-  //         this.onmessage?.({
-  //           data: JSON.stringify({
-  //             evento: 'actualizacion_lobby',
-  //             partida: {
-  //               nombre: 'Partida Test',
-  //               owner_id: '1',
-  //               jugadores: [{ id: '1', nombre: 'Veronica' }],
-  //             },
-  //           }),
-  //         });
-  //       }, 100);
-  //     }
-  //     close() {}
-  //   };
+    // Mock del WebSocket con datos de partida
+    global.WebSocket = class {
+      constructor() {
+        setTimeout(() => {
+          this.onmessage?.({
+            data: JSON.stringify({
+              evento: "actualizacion_lobby",
+              partida: {
+                nombre: "Partida Test",
+                owner_id: 1,
+                jugadores: [{ id: 1, nombre: "Veronica" }],
+              },
+            }),
+          });
+        }, 100);
+      }
+      close() {}
+    };
 
-  //   render(
-  //     <BrowserRouter>
-  //       <LobbyContainer />
-  //     </BrowserRouter>
-  //   );
+    // Mock del token decodificado
+    const token = btoa(JSON.stringify({ sub: 1 }));
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation((key) =>
+      key === "token" ? token : null
+    );
 
-  //   const boton = await screen.findByRole('button', { name: /Iniciar partida/i });
-  //   fireEvent.click(boton);
+    render(
+      <BrowserRouter>
+        <LobbyContainer />
+      </BrowserRouter>
+    );
 
-  //   await waitFor(() => {
-  //     expect(window.alert).toHaveBeenCalledWith('Solo el owner puede iniciar la partida');
-  //   });
-  // });
+    // Espera a que aparezca el botón
+    const boton = await screen.findByRole("button", { name: /Iniciar partida/i });
+    fireEvent.click(boton);
+
+    // Verifica que el mensaje de error se renderiza en pantalla
+    const error = await screen.findByText(/Solo el owner puede iniciar la partida/i);
+    expect(error).toBeInTheDocument();
+  });
+
 
 });
