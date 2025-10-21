@@ -147,7 +147,9 @@ describe('JugadorForm', () => {
     await user.type(screen.getByLabelText(/fecha de nacimiento/i), '2000-09-09');
     await user.click(screen.getByRole('button', { name: /enviar/i }));
 
-    const error = await screen.findByText(/error al crear jugador/i);
+    const error = await screen.findByText(/Error del servidor: 500/i);
     expect(error).toBeInTheDocument();
+
+
   });
 });

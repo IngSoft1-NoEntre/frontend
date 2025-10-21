@@ -40,40 +40,58 @@ describe("GameForm integration", () => {
     expect(maxInput.value).toBe("5");
   });
 
-  it("valida las reglas del formulario y muestra alertas", () => {
-    const alertMock = vi.spyOn(window, "alert").mockImplementation(() => {});
-
+  it("valida las reglas del formulario y muestra errores en pantalla", async () => {
     render(<GameForm />);
-    const form = screen.getByRole("form");
 
-    // la logitud del nombre no sea mayoa 30
-    fireEvent.change(screen.getByPlaceholderText(/Nombre de la partida/i), 
-    { target: { value: "Los increiblesssssssssssssssss" } });
-    fireEvent.submit(screen.getByRole("button", { name: /Crear/i }));
-    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), { target: { value: "2" } });
-    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), { target: { value: "2" } });
-    expect(alertMock).toHaveBeenCalledWith("El nombre no puede tener más de 29 caracteres.");
+    // Nombre demasiado largo
+    fireEvent.change(screen.getByPlaceholderText(/Nombre de la partida/i), {
+      target: { value: "Los increiblesssssssssssssssss" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), {
+      target: { value: "2" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), {
+      target: { value: "2" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Crear/i }));
+    expect(await screen.findByText(/El nombre no puede tener más de 29 caracteres/i)).toBeInTheDocument();
 
-    // min < 2
-    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), { target: { value: "1" } });
-    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), { target: { value: "4" } });
-    fireEvent.submit(screen.getByRole("button", { name: /Crear/i }));
-    expect(alertMock).toHaveBeenCalledWith("La cantidad mínima de jugadores debe ser al menos 2.");
+    // Corregir nombre para siguientes validaciones
+    fireEvent.change(screen.getByPlaceholderText(/Nombre de la partida/i), {
+      target: { value: "Partida válida" },
+    });
 
-    // max > 6
-    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), { target: { value: "2" } });
-    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), { target: { value: "7" } });
-    fireEvent.submit(screen.getByRole("button", { name: /Crear/i }));
-    expect(alertMock).toHaveBeenCalledWith("La cantidad máxima de jugadores no puede superar 6.");
+    // Mínimo < 2
+    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), {
+      target: { value: "1" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), {
+      target: { value: "4" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Crear/i }));
+    expect(await screen.findByText(/La cantidad mínima de jugadores debe ser al menos 2/i)).toBeInTheDocument();
 
-    // min > max
-    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), { target: { value: "5" } });
-    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), { target: { value: "4" } });
-    fireEvent.submit(screen.getByRole("button", { name: /Crear/i }));
-    expect(alertMock).toHaveBeenCalledWith("La cantidad mínima no puede ser mayor que la máxima.");
-  
-    alertMock.mockRestore();
+    // Máximo > 6
+    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), {
+      target: { value: "2" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), {
+      target: { value: "7" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Crear/i }));
+    expect(await screen.findByText(/La cantidad máxima de jugadores no puede superar 6/i)).toBeInTheDocument();
+
+    // Mínimo > Máximo
+    fireEvent.change(screen.getByPlaceholderText(/Mínima cantidad de jugadores/i), {
+      target: { value: "5" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Máxima cantidad de jugadores/i), {
+      target: { value: "4" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Crear/i }));
+    expect(await screen.findByText(/La cantidad mínima no puede ser mayor que la máxima/i)).toBeInTheDocument();
   });
+
 
   it("envía fetch y navega cuando todo OK", async () => {
     global.fetch.mockResolvedValueOnce({
